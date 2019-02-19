@@ -387,11 +387,11 @@ private:
     PopupMenuDelegate selectedRowPopupMenu;
     void* selectedRowPopupMenuUserData;
     template<typename T> inline static T GetRadiansToDegs() {
-        static T factor = T(180)/(3.1415926535897932384626433832795029);
+        static T factor = T(180/3.1415926535897932384626433832795029);
         return factor;
     }
     template<typename T> inline static T GetDegsToRadians() {
-        static T factor = T(3.1415926535897932384626433832795029)/T(180);
+        static T factor = T(3.1415926535897932384626433832795029/180);
         return factor;
     }
     inline static void FormatPrecisionString(char* precisionStr,int precisionStrLen,bool isArray,const char formatChar) {

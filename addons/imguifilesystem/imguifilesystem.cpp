@@ -200,7 +200,7 @@ public:
         }
         const size_t len = strlen(text);
         for (size_t i=0;i<len;i++)    {
-            rv[i]=tolower(text[i]);
+            rv[i]=(char)tolower(text[i]);
         }
         rv[len]='\0';
     }
@@ -208,7 +208,7 @@ public:
         if (!text) return;
         for (size_t i=0,len = strlen(text);i<len;i++)    {
             char& c = text[i];
-            c=tolower(c);
+            c=(char)tolower(c);
         }
     }
     inline static void Split(const char* text,FilenameStringVector& rv,const char c=' ')  {
@@ -1819,7 +1819,7 @@ struct Internal {
     inline void calculateBrowsingDataTableSizes(const ImVec2& childWindowSize=ImVec2(-1,-1))    {
         int approxNumEntriesPerColumn = 20;//(int) (20.f / browseSectionFontScale);// tweakable
         if (childWindowSize.y>0) {
-            int numLinesThatFit = childWindowSize.y/ImGui::GetTextLineHeightWithSpacing();
+            int numLinesThatFit = (int)(childWindowSize.y/ImGui::GetTextLineHeightWithSpacing());
             if (numLinesThatFit<=0) numLinesThatFit=1;
             approxNumEntriesPerColumn = numLinesThatFit;
             //static int tmp = 0;if (tmp!=numLinesThatFit) {tmp=numLinesThatFit;fprintf(stderr,"childWindowSize.y = %f numLinesThatFit=%d\n",childWindowSize.y,numLinesThatFit);}
@@ -1830,7 +1830,7 @@ struct Internal {
             return;
         }
         if (totalNumBrowsingEntries%approxNumEntriesPerColumn>(approxNumEntriesPerColumn/2)) ++numBrowsingColumns;
-        int maxNumBrowsingColumns = (childWindowSize.x>0) ? (childWindowSize.x/100) : 6;
+        int maxNumBrowsingColumns = (childWindowSize.x>0) ? (int)(childWindowSize.x/100) : 6;
         if (maxNumBrowsingColumns<1) maxNumBrowsingColumns=1;
         if (numBrowsingColumns>maxNumBrowsingColumns) numBrowsingColumns = maxNumBrowsingColumns;
         numBrowsingEntriesPerColumn = totalNumBrowsingEntries/numBrowsingColumns;
@@ -1934,9 +1934,9 @@ const char* ChooseFileMainMethod(Dialog& ist,const char* directory,const bool _i
     static ImVec4 ColorSet[Internal::ImGuiCol_Dialog_Size];
     // Fill ColorSet above and fix dummyButtonColor here
     {
-        static const ImVec4 df(0.9,0.9,0.3,0.65);          // directory color factor
-        static const ImVec4 ff(0.7,0.7,0.7,0.65);          // file color factor
-        static const ImVec4 zdf(1.5,0.8,0.8,0.65);          // zip directory color factor
+        static const ImVec4 df(0.9f,0.9f,0.3f,0.65f);          // directory color factor
+        static const ImVec4 ff(0.7f,0.7f,0.7f,0.65f);          // file color factor
+        static const ImVec4 zdf(1.5f,0.8f,0.8f,0.65f);          // zip directory color factor
 
         for (int i=0,sz=(int)Internal::ImGuiCol_Dialog_Directory_Text;i<=sz;i++)    {
             ImVec4& c = ColorSet[i];
@@ -2338,7 +2338,7 @@ const char* ChooseFileMainMethod(Dialog& ist,const char* directory,const bool _i
 #                   endif //_MSC_VER
                     if (wrapMode) {
                         sumX+=ImGui::CalcTextSize(I.currentSplitPath[t]).x;
-                        sumX+= 2.*ImGui::GetStyle().FramePadding.x;    // needed ?
+                        sumX+= 2.f*ImGui::GetStyle().FramePadding.x;    // needed ?
                         if (sumX >= windowWidth) sumX=0;
                         if (t!=0 && sumX>0) ImGui::SameLine(0,0);
                     }
@@ -2723,7 +2723,7 @@ const char* ChooseFileMainMethod(Dialog& ist,const char* directory,const bool _i
         else {
             ImGui::AlignTextToFramePadding();
 
-            static const ImVec4 sf(1.0,0.8,0.5,1);      // selected folder color factor
+            static const ImVec4 sf(1.0f,0.8f,0.5f,1);      // selected folder color factor
             ImVec4& c = ColorSet[Internal::ImGuiCol_Dialog_SelectedFolder_Text];
             const ImVec4& r = style.Colors[ImGuiCol_Text];
             Internal::ColorCombine(c,r,sf);

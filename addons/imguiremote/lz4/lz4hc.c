@@ -637,7 +637,7 @@ static int LZ4_compressHC_continue_generic (LZ4HC_Data_Structure* ctxPtr,
         LZ4HC_init (ctxPtr, (const BYTE*) source);
 
     /* Check overflow */
-    if ((size_t)(ctxPtr->end - ctxPtr->base) > 2 GB)
+    if ((size_t)(ctxPtr->end - ctxPtr->base) > size_t(2) GB)
     {
         size_t dictSize = (size_t)(ctxPtr->end - ctxPtr->base) - ctxPtr->dictLimit;
         if (dictSize > 64 KB) dictSize = 64 KB;

@@ -175,7 +175,7 @@ namespace ImGui
         return 1;
     }
 
-    static int onConnect(struct WebbyConnection *connection)
+    static int onConnect(struct WebbyConnection * /*connection*/)
     {
         //printf("[WsOnConnect] %s\n", connection->request.uri);
         return 0;

@@ -1,5 +1,9 @@
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS 1
+#endif
+#ifndef _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 1
+#endif
 #include "webby.h"
 
 /* Copyright (c) 2012, Andreas Fredriksson < dep at defmacro dot se > */
@@ -1752,7 +1756,7 @@ WebbySendFrame(struct WebbyConnection *conn_pub, int opcode, const void *ptr, si
   /* Switch socket to blocking mode */
   make_connection_blocking(conn);
 
-  header_size = make_websocket_header(header, opcode, len, 1);
+  header_size = make_websocket_header(header, (unsigned char)opcode, len, 1);
   send_fully(conn->socket, header, (int)header_size);
   send_fully(conn->socket, (const unsigned char*)ptr, (int)len);
 

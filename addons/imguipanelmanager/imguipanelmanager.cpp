@@ -69,11 +69,11 @@ static bool DockWindowButton(bool* p_undocked,bool *p_open=NULL)
             ImRect bb2 = bb;
             const ImVec2  sz = bb.GetSize();
             if (*p_undocked)    {
-                bb2.Expand(ImVec2(-.2f*sz.x,-.7*sz.y));
+                bb2.Expand(ImVec2(-.2f*sz.x,-.7f*sz.y));
                 window->DrawList->AddRect(bb2.Min,bb2.Max, col, 0);
             }
             else    {
-                bb2.Expand(ImVec2(-.7f*sz.x,-.2*sz.y));
+                bb2.Expand(ImVec2(-.7f*sz.x,-.2f*sz.y));
                 window->DrawList->AddRect(bb2.Min,bb2.Max, col, 0);
             }
         }
@@ -89,7 +89,7 @@ static bool DockWindowButton(bool* p_undocked,bool *p_open=NULL)
 
     return pressed;
 }
-static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, const ImVec2& size, float bg_alpha, ImGuiWindowFlags flags,bool* pDraggingStarted=NULL,ImGui::PanelManager::WindowData* wd=NULL)
+static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, const ImVec2& /*size*/, float bg_alpha, ImGuiWindowFlags flags,bool* pDraggingStarted=NULL,ImGui::PanelManager::WindowData* wd=NULL)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -213,7 +213,7 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
 
         window->Active = true;
         window->BeginOrderWithinParent = 0;
-        window->BeginOrderWithinContext = g.WindowsActiveCount++;
+        window->BeginOrderWithinContext = (short)g.WindowsActiveCount++;
         window->BeginCount = 0;
         window->ClipRect = ImVec4(-FLT_MAX,-FLT_MAX,+FLT_MAX,+FLT_MAX);
         window->LastFrameActive = current_frame;
@@ -404,7 +404,7 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
         if (flags & ImGuiWindowFlags_ChildWindow)
         {
             IM_ASSERT(parent_window->Active);
-            window->BeginOrderWithinParent = parent_window->DC.ChildWindows.Size;
+            window->BeginOrderWithinParent = (short)parent_window->DC.ChildWindows.Size;
             parent_window->DC.ChildWindows.push_back(window);
             if (!(flags & ImGuiWindowFlags_Popup) && !window_pos_set_by_api && !window_is_child_tooltip)
                  window->Pos = parent_window->DC.CursorPos;

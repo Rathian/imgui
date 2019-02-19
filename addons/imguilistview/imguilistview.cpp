@@ -78,7 +78,7 @@ bool ListViewBase::render(float listViewHeight, const ImVector<int> *pOptionalCo
                     hd.reset();
                     getHeaderData(col,hd);  // Needed because we must update "hd.sorting.sortingAscending"
                 }
-                ImGui::SameLine(0,ImGui::GetColumnWidth(colID)-ImGui::CalcTextSize(hd.name).x-ImGui::CalcTextSize(hd.sorting.sortingAscending ? " v" : " ^").x-style.FramePadding.x*2.0-style.ItemSpacing.x);
+                ImGui::SameLine(0,ImGui::GetColumnWidth(colID)-ImGui::CalcTextSize(hd.name).x-ImGui::CalcTextSize(hd.sorting.sortingAscending ? " v" : " ^").x-style.FramePadding.x*2.0f-style.ItemSpacing.x);
                 ImGui::Text(hd.sorting.sortingAscending ? "v" : "^");
             }
         }
@@ -548,7 +548,7 @@ void TestListView() {
                         "My '  ' Dummy Path",
                         i*3,
                         (unsigned)i*4,(i%3==0)?true:false,
-                        ImVec4((float)(i*30)/2.7345672,(float)(i%30)/2.7345672,(float)(i*5)/1.34,1.f),  // ImVec3 does not exist... so we use an ImVec4 to initialize a float[3]
+                        ImVec4((float)(i*30)/2.7345672f,(float)(i%30)/2.7345672f,(float)(i*5)/1.34f,1.f),  // ImVec3 does not exist... so we use an ImVec4 to initialize a float[3]
                         ImVec4((float)i/(float)(isz-1),0.8f,1.0f-(float)i/(float)(isz-1),1.0f),         // HT_COLOR
                         i%3
             );    // MANDATORY even with blank ctrs. Reason: ImVector does not call ctrs/dctrs on items.

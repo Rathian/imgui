@@ -74,7 +74,7 @@ struct PanelManager {
         Position pos;
         bool visible;
         bool allowHoverOnTogglableWindows;
-        mutable float hoverReleaseTimer;
+        mutable double hoverReleaseTimer;
         mutable int hoverReleaseIndex;
         Pane(Position _pos,const char* name)
         : bar(name),pos(_pos),visible(true),allowHoverOnTogglableWindows(false),hoverReleaseTimer(-1),hoverReleaseIndex(-1)
@@ -141,7 +141,7 @@ struct PanelManager {
     mutable ImVec2 innerBarQuadPos;mutable ImVec2 innerBarQuadSize;    // placement of the blank quad contained inside the toolbars only
     mutable ImVec2 innerQuadPos;mutable ImVec2 innerQuadSize;          // placement of the blank quad contained inside the toolbars AND the selected windows that are docked to them
     mutable float dockedWindowsAlpha;
-    mutable float innerQuadChangedTimer;
+    mutable double innerQuadChangedTimer;
     mutable ImGuiWindowFlags dockedWindowsExtraFlags;
     public:
     PanelManager(bool _visible=true,float _dockedWindowsAlpha=0.8f) : paneLeft(NULL),paneRight(NULL),paneTop(NULL),paneBottom(NULL),visible(_visible),

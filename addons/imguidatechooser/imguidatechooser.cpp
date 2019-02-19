@@ -132,7 +132,7 @@ bool DateChooser(const char* label, tm& dateOut,const char* dateFormat,bool clos
                 dayName[0] = fallbacks[i];dayName[1] = '\0';
             }
             else {
-                dayName[0]=toupper(dayName[0]);
+                dayName[0]=(char)toupper(dayName[0]);
                 dayName[1]='\0';
             }
             //fprintf(stderr,"%s\n",dayNames[i]);
@@ -150,7 +150,7 @@ bool DateChooser(const char* label, tm& dateOut,const char* dateFormat,bool clos
                 static const char* fallbacks[12]={"January","February","March","April","May","June","July","August","September","October","November","December"};
                 strcpy(monthName,fallbacks[i]);
             }
-            else monthName[0]=toupper(monthName[0]);
+            else monthName[0]=(char)toupper(monthName[0]);
             //fprintf(stderr,"%s\n",monthNames[i]);
             float mw = ImGui::CalcTextSize(monthName).x;
             if (maxMonthWidth<mw) {
