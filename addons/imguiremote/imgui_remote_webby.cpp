@@ -6,6 +6,7 @@
 // LZ4   https://code.google.com/p/lz4/
 //-----------------------------------------------------------------------------
 #include "imgui_remote_webby.h"
+#include "imgui.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -103,7 +104,8 @@ namespace ImGui
         //		printf("  Masked?     : %s\n", (frame->flags & WEBBY_WSF_MASKED) ? "yes" : "no");
         //		printf("  Data Length : %d\n", (int) frame->payload_length);
 
-        std::vector<unsigned char> buffer(frame->payload_length + 1);
+        ImVector<unsigned char> buffer;
+        buffer.reserve(frame->payload_length + 1);
         WebbyRead(connection, &buffer[0], frame->payload_length);
         buffer[frame->payload_length] = 0;
         //        if(!strstr((char*)&buffer[0],"ImMouseMove"))

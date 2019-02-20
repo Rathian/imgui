@@ -971,7 +971,7 @@ namespace ImGui {
             style.fillColorGradientDeltaIn0_05 = 0.0f; style.rounding = 6.f; style.borderWidth = 1.0f;
             TabLabelStyleSetSelectedTabColors(style, ImColor(1.f, 1.f, 1.f), ImColor(0.059f, 0.059f, 0.059f, 1.f), ImColor(0.090f, 0.106f, 0.157f, 0.706f));
             TabLabelStyleSetTabColors(style, ImColor(0.925f, 0.953f, 0.969f, 1.f), ImColor(1.f, 1.f, 1.f, 1.f), ImColor(0.247f, 0.286f, 0.294f, 0.765f), ImColor(0.067f, 0.082f, 0.133f, 0.353f));
-            style.closeButtonBorderWidth = 1.f; style.closeButtonTextWidth = 2.5f; ImColor btc(1.f, 1.f, 1.f, 1.), bbc(0.090f, 0.106f, 0.157, 1.f);
+            style.closeButtonBorderWidth = 1.f; style.closeButtonTextWidth = 2.5f; ImColor btc(1.f, 1.f, 1.f, 1.f), bbc(0.090f, 0.106f, 0.157f, 1.f);
             TabLabelStyleSetCloseButtonColors(style, ImColor(0.651f, 0.000f, 0.047f, 0.490f), ImColor(0.949f, 0.f, 0.067f, 1.f), &btc, &bbc);
         }
                                        break;

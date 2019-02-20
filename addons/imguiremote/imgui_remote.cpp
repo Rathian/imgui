@@ -144,5 +144,162 @@ void RemoteDraw(ImDrawList** const cmd_lists, int cmd_lists_count)
 	}
 }
 
+inline bool mapRemoteKey(int* remoteKey, bool isCtrlPressed)
+{
+    if (*remoteKey == 37)
+        *remoteKey = ImGuiKey_LeftArrow;
+    else if (*remoteKey == 40)
+        *remoteKey = ImGuiKey_DownArrow;
+    else if (*remoteKey == 38)
+        *remoteKey = ImGuiKey_UpArrow;
+    else if (*remoteKey == 39)
+        *remoteKey = ImGuiKey_RightArrow;
+    else if (*remoteKey == 46)
+        *remoteKey = ImGuiKey_Delete;
+    else if (*remoteKey == 9)
+        *remoteKey = ImGuiKey_Tab;
+    else if (*remoteKey == 8)
+        *remoteKey = ImGuiKey_Backspace;
+    else if (*remoteKey == 65 && isCtrlPressed)
+        *remoteKey = 'a';
+    else if (*remoteKey == 67 && isCtrlPressed)
+        *remoteKey = 'c';
+    else if (*remoteKey == 86 && isCtrlPressed)
+        *remoteKey = 'v';
+    else if (*remoteKey == 88 && isCtrlPressed)
+        *remoteKey = 'x';
+    else
+        return true;
+
+    return false;
+}
+
+void WebSocketServer::OnMessage(OpCode opcode, const void *data, int /*size*/)
+{
+    switch (opcode)
+    {
+        // Text message
+    case WebSocketServer::Text:
+        if (!ClientActive)
+        {
+            if (!memcmp(data, "ImInit", 6))
+            {
+                ClientActive = true;
+                ForceKeyFrame = true;
+                // Send confirmation
+                SendText("ImInit", 6);
+
+                int x, y;
+                if (sscanf((char *)data, "ImInit=%d,%d", &x, &y) == 2)
+                {
+                    ImGuiIO& io = ImGui::GetIO();
+                    io.DisplaySize = ImVec2((float)x, (float)y);
+                }
+
+                // Send font texture
+                unsigned char* pixels;
+                int width, height;
+                ImGui::GetIO().Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+                PreparePacketTexFont(pixels, width, height);
+                SendPacket();
+            }
+        }
+        else if (strstr((char *)data, "ImMouseMove"))
+        {
+            int x, y, mouse_left, mouse_right, mouse_middle;
+            if (sscanf((char *)data, "ImMouseMove=%d,%d,%d,%d,%d", &x, &y, &mouse_left, &mouse_right, &mouse_middle) == 5)
+            {
+                FrameReceived = Frame;
+                Input.MousePos.x = (float)x;
+                Input.MousePos.y = (float)y;
+                Input.MouseButtons = mouse_left | (mouse_right << 1) | (mouse_middle << 2);
+            }
+        }
+        else if (strstr((char *)data, "ImMousePress"))
+        {
+            int l, r, m;
+            if (sscanf((char *)data, "ImMousePress=%d,%d,%d", &l, &r, &m) == 3)
+            {
+                FrameReceived = Frame;
+                Input.MouseButtons = l | (r << 1) | (m << 2);
+            }
+        }
+        else if (strstr((char *)data, "ImMouseWheelDelta"))
+        {
+            float mouseWheelDelta;
+            if (sscanf((char *)data, "ImMouseWheelDelta=%f", &mouseWheelDelta) == 1)
+            {
+                FrameReceived = Frame;
+                Input.MouseWheelDelta = mouseWheelDelta * 0.01f;
+            }
+        }
+        else if (strstr((char *)data, "ImKeyDown"))
+        {
+            int key, shift, ctrl;
+            if (sscanf((char *)data, "ImKeyDown=%d,%d,%d", &key, &shift, &ctrl) == 3)
+            {
+                //update key states
+                FrameReceived = Frame;
+                Input.KeyShift = shift > 0;
+                Input.KeyCtrl = ctrl > 0;
+                mapRemoteKey(&key, Input.KeyCtrl);
+                Input.KeysDown[key] = true;
+            }
+        }
+        else if (strstr((char *)data, "ImKeyUp"))
+        {
+            int key;
+            if (sscanf((char *)data, "ImKeyUp=%d", &key) == 1)
+            {
+                //update key states
+                FrameReceived = Frame;
+                Input.KeysDown[key] = false;
+                Input.KeyShift = false;
+                Input.KeyCtrl = false;
+            }
+        }
+        else if (strstr((char *)data, "ImKeyPress"))
+        {
+            unsigned int key;
+            if (sscanf((char *)data, "ImKeyPress=%d", &key) == 1)
+                ImGui::GetIO().AddInputCharacter(ImWchar(key));
+        }
+        else if (strstr((char *)data, "ImClipboard="))
+        {
+            char *clipboard = &((char *)data)[strlen("ImClipboard=")];
+            ImGui::GetIO().SetClipboardTextFn(nullptr, clipboard);
+        }
+        else if (strstr((char *)data, "ImResize="))
+        {
+            int x, y;
+            if (sscanf((char *)data, "ImResize=%d,%d", &x, &y) == 2)
+            {
+                ImGuiIO& io = ImGui::GetIO();
+                io.DisplaySize = ImVec2((float)x, (float)y);
+            }
+        }
+        break;
+        // Binary message
+    case WebSocketServer::Binary:
+        //printf("ImGui client: Binary message received (%d bytes)\n", size);
+        break;
+        // Disconnect
+    case WebSocketServer::Disconnect:
+        printf("ImGui client: DISCONNECT\n");
+        ClientActive = false;
+        break;
+        // Ping
+    case WebSocketServer::Ping:
+        printf("ImGui client: PING\n");
+        break;
+        // Pong
+    case WebSocketServer::Pong:
+        printf("ImGui client: PONG\n");
+        break;
+    default:
+        assert(0);
+        break;
+    }
+}
 
 } // namespace

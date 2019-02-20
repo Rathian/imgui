@@ -72,6 +72,9 @@ static const int LZ4HC_compressionLevel_default = 8;
 #define MAXD_MASK ((U32)(MAXD - 1))
 
 #define HASH_LOG (DICTIONARY_LOGSIZE-1)
+#ifdef HASHTABLESIZE
+#undef HASHTABLESIZE
+#endif
 #define HASHTABLESIZE (1 << HASH_LOG)
 #define HASH_MASK (HASHTABLESIZE - 1)
 

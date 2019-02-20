@@ -55,7 +55,7 @@ Compiler Options
 Memory routines
 **************************************/
 #include <stdlib.h>   /* malloc, calloc, free */
-#define ALLOCATOR(s)   calloc(1,s)
+//#define ALLOCATOR(s)   calloc(1,s)
 #define FREEMEM        free
 #include <string.h>   /* memset, memcpy, memmove */
 #define MEM_INIT       memset
@@ -92,9 +92,9 @@ typedef unsigned long long  U64;
 /**************************************
 Constants
 **************************************/
-#define KB *(1<<10)
-#define MB *(1<<20)
-#define GB *(1<<30)
+//#define KB *(1<<10)
+//#define MB *(1<<20)
+//#define GB *(1<<30)
 
 #define _1BIT  0x01
 #define _2BITS 0x03
@@ -329,7 +329,7 @@ LZ4F_errorCode_t LZ4F_createCompressionContext(LZ4F_compressionContext_t* LZ4F_c
 {
     LZ4F_cctx_internal_t* cctxPtr;
 
-    cctxPtr = (LZ4F_cctx_internal_t*)ALLOCATOR(sizeof(LZ4F_cctx_internal_t));
+    cctxPtr = (LZ4F_cctx_internal_t*)ALLOCATOR(1, sizeof(LZ4F_cctx_internal_t));
     if (cctxPtr==NULL) return (LZ4F_errorCode_t)(-ERROR_allocation_failed);
 
     cctxPtr->version = version;
@@ -399,7 +399,7 @@ size_t LZ4F_compressBegin(LZ4F_compressionContext_t compressionContext, void* ds
     {
         cctxPtr->maxBufferSize = requiredBuffSize;
         FREEMEM(cctxPtr->tmpBuff);
-        cctxPtr->tmpBuff = (BYTE*)ALLOCATOR(requiredBuffSize);
+        cctxPtr->tmpBuff = (BYTE*)ALLOCATOR(1, requiredBuffSize);
         if (cctxPtr->tmpBuff == NULL) return (size_t)-ERROR_allocation_failed;
     }
     cctxPtr->tmpIn = cctxPtr->tmpBuff;
@@ -712,7 +712,7 @@ LZ4F_errorCode_t LZ4F_createDecompressionContext(LZ4F_compressionContext_t* LZ4F
 {
     LZ4F_dctx_internal_t* dctxPtr;
 
-    dctxPtr = (LZ4F_dctx_internal_t*)ALLOCATOR(sizeof(LZ4F_dctx_internal_t));
+    dctxPtr = (LZ4F_dctx_internal_t*)ALLOCATOR(1, sizeof(LZ4F_dctx_internal_t));
     if (dctxPtr==NULL) return (LZ4F_errorCode_t)-ERROR_GENERIC;
 
     dctxPtr->version = versionNumber;
@@ -786,9 +786,9 @@ static size_t LZ4F_decodeHeader(LZ4F_dctx_internal_t* dctxPtr, const BYTE* srcPt
         FREEMEM(dctxPtr->tmpIn);
         FREEMEM(dctxPtr->tmpOutBuffer);
         dctxPtr->maxBufferSize = bufferNeeded;
-        dctxPtr->tmpIn = (BYTE*)ALLOCATOR(dctxPtr->maxBlockSize);
+        dctxPtr->tmpIn = (BYTE*)ALLOCATOR(1, dctxPtr->maxBlockSize);
         if (dctxPtr->tmpIn == NULL) return (size_t)-ERROR_GENERIC;
-        dctxPtr->tmpOutBuffer = (BYTE*)ALLOCATOR(dctxPtr->maxBufferSize);
+        dctxPtr->tmpOutBuffer = (BYTE*)ALLOCATOR(1, dctxPtr->maxBufferSize);
         if (dctxPtr->tmpOutBuffer== NULL) return (size_t)-ERROR_GENERIC;
     }
     dctxPtr->tmpInSize = 0;
