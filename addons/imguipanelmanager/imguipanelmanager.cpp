@@ -640,9 +640,9 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
 
             // Scrollbars
             if (window->ScrollbarX)
-                Scrollbar(ImGuiLayoutType_Horizontal);
+                Scrollbar(ImGuiAxis_X);
             if (window->ScrollbarY)
-                Scrollbar(ImGuiLayoutType_Vertical);
+                Scrollbar(ImGuiAxis_Y);
 
             // Render resize grips (after their input handling so we don't have a frame of latency)
             /*if (!(flags & ImGuiWindowFlags_NoResize))
