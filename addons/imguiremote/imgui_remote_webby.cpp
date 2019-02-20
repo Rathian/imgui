@@ -105,7 +105,7 @@ namespace ImGui
         //		printf("  Data Length : %d\n", (int) frame->payload_length);
 
         ImVector<unsigned char> buffer;
-        buffer.reserve(frame->payload_length + 1);
+        buffer.resize(frame->payload_length + 1);
         WebbyRead(connection, &buffer[0], frame->payload_length);
         buffer[frame->payload_length] = 0;
         //        if(!strstr((char*)&buffer[0],"ImMouseMove"))
