@@ -48,7 +48,7 @@ var ImFS = [
     "uniform sampler2D tTex;",
 
     "void main() {",
-            "gl_FragColor = vec4( vColor, texture2D( tTex, vUv ).a * vAlpha );",
+            "gl_FragColor = texture2D( tTex, vUv ) * vec4( vColor, vAlpha );",
     "}" ].join("\n");
 
 var ImguiGui = function() {
@@ -195,6 +195,7 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
     var gidxcount = 0;
     var glistcount= 0;
     var gclips = [];
+	var texmap = {};
 
     // add to element
     element.appendChild( renderer.domElement )
@@ -281,15 +282,15 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
                     data = evt.data;
 
                 // message type
-                var type = { TEX_FONT : 255, FRAME_KEY : 254, FRAME_DIFF : 253 };
+                var type = { TEX_FONT : 255, FRAME_KEY : 254, FRAME_DIFF : 253, TEX_IMAGE : 252 };
                 var stream = new DataStream( data );
-                var message_type = stream.readUint8();
+                var message_type = stream.readUint32();
                 switch( message_type ) {
                     // load font texture
                     case type.TEX_FONT:
                         var w = stream.readUint32();
                         var h = stream.readUint32();
-                        var src = new Uint8Array( data, 9 );
+                        var src = new Uint8Array( data, 12 );
                         // canvas
                         var canvas = document.createElement( 'canvas' );
                         canvas.id     = "CursorLayer";
@@ -308,7 +309,11 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
                         var map = new THREE.Texture( canvas );
                         map.needsUpdate = true;
                         map.minFilter = map.magFilter = THREE.NearestFilter;
-                        guniforms.tTex.value = map;
+						texmap[0] = {
+							cvs: canvas,
+							tex: map
+						};
+                        //guniforms.tTex.value = map;
                         break;
                     // full frame data
                     case type.FRAME_KEY:
@@ -326,6 +331,61 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
                         }
                         onMessage( stream );
                         prev_data = data;
+                        break;
+					case type.TEX_IMAGE:
+                        var w = stream.readUint32();
+                        var h = stream.readUint32();
+						var id = stream.readUint32();
+                        var src = new Uint32Array( data, 16, w*h );
+                        // canvas
+						if (id in texmap)
+						{
+							var canvas = texmap[id].cvs;
+							canvas.width  = w;
+							canvas.height = h;
+							var ctx = canvas.getContext( '2d' );
+							var imageData = ctx.getImageData( 0, 0, w,h );
+							var buf = new ArrayBuffer( imageData.data.length );
+							var buf8 = new Uint8ClampedArray( buf );
+							var data = new Uint32Array( buf );
+							for( var i = 0; i < w*h; i++ )
+								data[ i ] = src[ i ];
+							imageData.data.set( buf8 );
+							ctx.putImageData( imageData, 0, 0 );
+							// texture
+							var map = new THREE.Texture( canvas );
+							map.needsUpdate = true;
+							map.minFilter = map.magFilter = THREE.NearestFilter;
+							texmap[id] = {
+								cvs: canvas,
+								tex: map
+							};
+						}
+						else
+						{
+							var canvas = document.createElement( 'canvas' );
+							canvas.id     = id;
+							canvas.width  = w;
+							canvas.height = h;
+							var ctx = canvas.getContext( '2d' );
+							var imageData = ctx.getImageData( 0, 0, w,h );
+							var buf = new ArrayBuffer( imageData.data.length );
+							var buf8 = new Uint8ClampedArray( buf );
+							var data = new Uint32Array( buf );
+							for( var i = 0; i < w*h; i++ )
+								data[ i ] = src[ i ];
+							imageData.data.set( buf8 );
+							ctx.putImageData( imageData, 0, 0 );
+							// texture
+							var map = new THREE.Texture( canvas );
+							map.needsUpdate = true;
+							map.minFilter = map.magFilter = THREE.NearestFilter;
+							texmap[id] = {
+								cvs: canvas,
+								tex: map
+							};
+						}
+                        //guniforms.tTex.value = map;
                         break;
                 }
 
@@ -632,11 +692,12 @@ var touchStarted = false, // detect if a touch event is sarted
             // command lists
             for( var i = 0; i < gcmdcount; i++ ) {
                 var num = data.readUint32();
+				var tex = data.readUint32();
                 var x = data.readFloat32();
                 var y = data.readFloat32();
                 var w = data.readFloat32();
                 var h = data.readFloat32();
-                gclips.push( { start: curElem, index: 0, count: num, clip: new THREE.Vector4( x, y, w, h ) } );
+                gclips.push( { start: curElem, index: 0, count: num, texture: tex, clip: new THREE.Vector4( x, y, w, h ) } );
                 curElem+= num;
             }
             // all vertices
@@ -726,8 +787,11 @@ var touchStarted = false, // detect if a touch event is sarted
                                 (gclips[ i ].clip.w - gclips[ i ].clip.y)
                            );
             
-                                
-            renderer.render( scene, camera );
+			if (gclips[ i ].texture in texmap)
+			{
+				guniforms.tTex.value = texmap[gclips[ i ].texture].tex;                          
+				renderer.render( scene, camera );
+			}
         }
     }
 

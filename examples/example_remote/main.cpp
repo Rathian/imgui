@@ -60,6 +60,8 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    int counter = 0;
+
     // Main loop
     while (!io.KeysDown[io.KeyMap[ImGuiKey_Escape]])
     {
@@ -141,6 +143,7 @@ int main(int, char**)
             {
                 ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
                 ImGui::Text("Hello from another window!");
+                ImGui::Image(ImTextureID(1), ImVec2(100, 100));
                 if (ImGui::Button("Close Me"))
                     show_another_window = false;
                 ImGui::End();
@@ -148,6 +151,19 @@ int main(int, char**)
 
             // Rendering
             ImGui::Render();
+        }
+
+        if (++counter > 10)
+        {
+            counter = 0;
+            ImU32* color = new ImU32[100 * 100];
+            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+            for (int i = 0; i < 100 * 100; i++)
+            {
+                color[i] = ImColor::HSV(r, 1.0f, 1.0f);
+            }
+            ImGui::RemoteSetTexture(color, 100, 100, ImTextureID(1));
+            delete[] color;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(8));
