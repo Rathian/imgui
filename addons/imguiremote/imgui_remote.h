@@ -93,10 +93,12 @@ struct WebSocketServer : public IWebSocketServer
 	struct Cmd
 	{
 		int   elemCount;
+        unsigned int textureID;
 		float clip_rect[4];
 		void Set(const ImDrawCmd &draw_cmd)
 		{
 			elemCount = draw_cmd.ElemCount;
+            textureID = (unsigned int)draw_cmd.TextureId;
 			clip_rect[0] = draw_cmd.ClipRect.x;
 			clip_rect[1] = draw_cmd.ClipRect.y;
 			clip_rect[2] = draw_cmd.ClipRect.z;
@@ -199,17 +201,20 @@ struct WebSocketServer : public IWebSocketServer
 
 	void PreparePacket(unsigned char data_type, unsigned int data_size)
 	{
-		unsigned int size = sizeof(unsigned char) + data_size;
+		unsigned int size = sizeof(unsigned int) + data_size;
 		Packet.clear();
 		Packet.reserve(size);
 		PrevPacket.reserve(size);
 		while (size > (unsigned int)PrevPacket.size())
 			PrevPacket.push_back(0);
 		Write(data_type);
+        Packet.push_back(0);
+        Packet.push_back(0);
+        Packet.push_back(0);
 	}
 
 	// packet types
-	enum { TEX_FONT = 255, FRAME_KEY = 254, FRAME_DIFF = 253 };
+	enum { TEX_FONT = 255, FRAME_KEY = 254, FRAME_DIFF = 253, TEX_IMAGE = 252, };
 
 	void PreparePacketTexFont(const void *data, unsigned int w, unsigned int h)
 	{
@@ -220,6 +225,17 @@ struct WebSocketServer : public IWebSocketServer
 		Write(data, w*h);
 		ForceKeyFrame = true;
 	}
+
+    void PreparePacketImage(const void *data, unsigned int w, unsigned int h, unsigned id)
+    {
+        IsKeyFrame = true;
+        PreparePacket(TEX_IMAGE, sizeof(unsigned int) * (3 + w * h));
+        Write(w);
+        Write(h);
+        Write(id);
+        Write(data, w*h*sizeof(unsigned int));
+        ForceKeyFrame = true;
+    }
 
 	void PreparePacketFrame(unsigned int size)//unsigned int cmd_count, unsigned int vtx_count, unsigned int idx_count)
 	{
@@ -238,6 +254,8 @@ void RemoteSetClipboardTextFn(void*, const char* text);
 //------------------
 bool RemoteGetInput(RemoteInput & input);
 
+
+bool RemoteSetTexture(ImU32* texture, unsigned int width, unsigned int height, ImTextureID id);
 
 //------------------
 // RemoteInit

@@ -43,6 +43,19 @@ bool RemoteGetInput(RemoteInput & input)
 	return res;
 }
 
+bool RemoteSetTexture(ImU32* texture, unsigned int width, unsigned int height, ImTextureID id)
+{
+    if (GServer.ClientActive)
+    {
+        GServer.PreparePacketImage(texture, width, height, (unsigned int)id);
+        GServer.SendPacket();
+        return false;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 //------------------
 // RemoteInit

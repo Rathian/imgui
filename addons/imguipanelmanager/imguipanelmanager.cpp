@@ -266,7 +266,9 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
         window->DrawList->Clear();
         window->DrawList->Flags = (g.Style.AntiAliasedLines ? ImDrawListFlags_AntiAliasedLines : 0) | (g.Style.AntiAliasedFill ? ImDrawListFlags_AntiAliasedFill : 0);
         window->DrawList->PushTextureID(g.Font->ContainerAtlas->TexID);
-        ImRect viewport_rect(GetViewportRect());
+        auto min = GetWindowViewport()->Pos;
+		auto max = min + GetWindowViewport()->Size;
+		ImRect viewport_rect(min, max);
         if ((flags & ImGuiWindowFlags_ChildWindow) && !(flags & ImGuiWindowFlags_Popup) && !window_is_child_tooltip)
             PushClipRect(parent_window->ClipRect.Min, parent_window->ClipRect.Max, true);
         else
@@ -640,9 +642,9 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
 
             // Scrollbars
             if (window->ScrollbarX)
-                Scrollbar(ImGuiAxis_X);
+                Scrollbar(ImGuiLayoutType_Horizontal);
             if (window->ScrollbarY)
-                Scrollbar(ImGuiAxis_Y);
+                Scrollbar(ImGuiLayoutType_Vertical);
 
             // Render resize grips (after their input handling so we don't have a frame of latency)
             /*if (!(flags & ImGuiWindowFlags_NoResize))
