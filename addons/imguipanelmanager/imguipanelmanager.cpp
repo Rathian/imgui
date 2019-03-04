@@ -642,9 +642,9 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
 
             // Scrollbars
             if (window->ScrollbarX)
-                Scrollbar(ImGuiLayoutType_Horizontal);
+                Scrollbar(ImGuiAxis_X);
             if (window->ScrollbarY)
-                Scrollbar(ImGuiLayoutType_Vertical);
+                Scrollbar(ImGuiAxis_Y);
 
             // Render resize grips (after their input handling so we don't have a frame of latency)
             /*if (!(flags & ImGuiWindowFlags_NoResize))
@@ -727,7 +727,7 @@ static bool DockWindowBegin(const char* name, bool* p_opened,bool* p_undocked, c
         window->DC.NavLayerActiveMask = window->DC.NavLayerActiveMaskNext;
         window->DC.NavLayerActiveMaskNext = 0x00;
         window->DC.MenuBarAppending = false;
-        window->DC.LogLinePosY = window->DC.CursorPos.y - 9999.0f;
+       // window->DC.LogLinePosY = window->DC.CursorPos.y - 9999.0f;
         window->DC.ChildWindows.resize(0);
         window->DC.LayoutType = ImGuiLayoutType_Vertical;
         window->DC.ParentLayoutType = parent_window ? parent_window->DC.LayoutType : ImGuiLayoutType_Vertical;
