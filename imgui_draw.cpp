@@ -1,4 +1,4 @@
-// dear imgui, v1.68
+// dear imgui, v1.69 WIP
 // (drawing and font code)
 
 /*
@@ -83,7 +83,7 @@ Index of this file:
 //-------------------------------------------------------------------------
 
 // Compile time options:
-//#define IMGUI_STB_NAMESPACE           ImGuiStb
+//#define IMGUI_STB_NAMESPACE           ImStb
 //#define IMGUI_STB_TRUETYPE_FILENAME   "my_folder/stb_truetype.h"
 //#define IMGUI_STB_RECT_PACK_FILENAME  "my_folder/stb_rect_pack.h"
 //#define IMGUI_DISABLE_STB_TRUETYPE_IMPLEMENTATION
@@ -163,7 +163,7 @@ namespace IMGUI_STB_NAMESPACE
 #endif
 
 #ifdef IMGUI_STB_NAMESPACE
-} // namespace ImGuiStb
+} // namespace ImStb
 using namespace IMGUI_STB_NAMESPACE;
 #endif
 
@@ -413,7 +413,7 @@ ImDrawList* ImDrawList::CloneOutput() const
 
 // Using macros because C++ is a terrible language, we want guaranteed inline, no code in header, and no overhead in Debug builds
 #define GetCurrentClipRect()    (_ClipRectStack.Size ? _ClipRectStack.Data[_ClipRectStack.Size-1]  : _Data->ClipRectFullscreen)
-#define GetCurrentTextureId()   (_TextureIdStack.Size ? _TextureIdStack.Data[_TextureIdStack.Size-1] : NULL)
+#define GetCurrentTextureId()   (_TextureIdStack.Size ? _TextureIdStack.Data[_TextureIdStack.Size-1] : (ImTextureID)NULL)
 
 void ImDrawList::AddDrawCmd()
 {
@@ -2976,7 +2976,7 @@ void ImGui::RenderMouseCursor(ImVec2 pos, float scale, ImGuiMouseCursor mouse_cu
             if (!viewport->GetRect().Overlaps(ImRect(pos, pos + ImVec2(size.x + 2, size.y + 2) * scale)))
                 continue;
 
-            ImDrawList* draw_list = GetOverlayDrawList(viewport);
+            ImDrawList* draw_list = GetForegroundDrawList(viewport);
             draw_list->PushTextureID(tex_id);
             draw_list->AddImage(tex_id, pos + ImVec2(1,0)*scale, pos + ImVec2(1,0)*scale + size*scale, uv[2], uv[3], col_shadow);
             draw_list->AddImage(tex_id, pos + ImVec2(2,0)*scale, pos + ImVec2(2,0)*scale + size*scale, uv[2], uv[3], col_shadow);
