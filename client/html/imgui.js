@@ -95,10 +95,6 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
 
     if( !Detector.webgl ) Detector.addGetWebGLMessage();
 
-    var gui = new dat.GUI();
-    var datgui = new ImguiGui();
-    var datgui_window = gui.add( datgui, 'window', datgui.windows );
-    datgui_window.onChange( onFocusWindow );
     var websocket, connecting, connected;
     var server;
 
@@ -290,31 +286,19 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
                     case type.TEX_FONT:
                         var w = stream.readUint32();
                         var h = stream.readUint32();
-                        var src = new Uint8Array( data, 12 );
-                        // canvas
-                        var canvas = document.createElement( 'canvas' );
-                        canvas.id     = "CursorLayer";
-                        canvas.width  = w;
-                        canvas.height = h;
-                        var ctx = canvas.getContext( '2d' );
-                        var imageData = ctx.getImageData( 0, 0, w,h );
-                        var buf = new ArrayBuffer( imageData.data.length );
-                        var buf8 = new Uint8ClampedArray( buf );
-                        var data = new Uint32Array( buf );
+                        var src = new Uint8Array( data, 12, w*h );
+                        var buf = new ArrayBuffer( w*h*4 );
+                        var buf8 = new Uint8Array( buf );
+                        var buf32 = new Uint32Array( buf );
                         for( var i = 0; i < w*h; i++ )
-                            data[ i ] = ( src[ i ] << 24 ) | 0xFFFFFF;
-                        imageData.data.set( buf8 );
-                        ctx.putImageData( imageData, 0, 0 );
-                        // texture
-                        var map = new THREE.Texture( canvas );
-                        map.needsUpdate = true;
-                        map.minFilter = map.magFilter = THREE.NearestFilter;
+                            buf32[ i ] = ( src[ i ] << 24 ) | 0xFFFFFF;
+						var map = new THREE.DataTexture( buf8, w, h, THREE.RGBAFormat );
+						map.needsUpdate = true;
+						map.minFilter = map.magFilter = THREE.NearestFilter;
 						texmap[0] = {
-							cvs: canvas,
 							tex: map
 						};
-                        //guniforms.tTex.value = map;
-                        break;
+						break;
                     // full frame data
                     case type.FRAME_KEY:
                         onMessage( stream );
@@ -336,56 +320,13 @@ function StartImgui( element, serveruri, targetwidth, targetheight, compressed )
                         var w = stream.readUint32();
                         var h = stream.readUint32();
 						var id = stream.readUint32();
-                        var src = new Uint32Array( data, 16, w*h );
-                        // canvas
-						if (id in texmap)
-						{
-							var canvas = texmap[id].cvs;
-							canvas.width  = w;
-							canvas.height = h;
-							var ctx = canvas.getContext( '2d' );
-							var imageData = ctx.getImageData( 0, 0, w,h );
-							var buf = new ArrayBuffer( imageData.data.length );
-							var buf8 = new Uint8ClampedArray( buf );
-							var data = new Uint32Array( buf );
-							for( var i = 0; i < w*h; i++ )
-								data[ i ] = src[ i ];
-							imageData.data.set( buf8 );
-							ctx.putImageData( imageData, 0, 0 );
-							// texture
-							var map = new THREE.Texture( canvas );
-							map.needsUpdate = true;
-							map.minFilter = map.magFilter = THREE.NearestFilter;
-							texmap[id] = {
-								cvs: canvas,
-								tex: map
-							};
-						}
-						else
-						{
-							var canvas = document.createElement( 'canvas' );
-							canvas.id     = id;
-							canvas.width  = w;
-							canvas.height = h;
-							var ctx = canvas.getContext( '2d' );
-							var imageData = ctx.getImageData( 0, 0, w,h );
-							var buf = new ArrayBuffer( imageData.data.length );
-							var buf8 = new Uint8ClampedArray( buf );
-							var data = new Uint32Array( buf );
-							for( var i = 0; i < w*h; i++ )
-								data[ i ] = src[ i ];
-							imageData.data.set( buf8 );
-							ctx.putImageData( imageData, 0, 0 );
-							// texture
-							var map = new THREE.Texture( canvas );
-							map.needsUpdate = true;
-							map.minFilter = map.magFilter = THREE.NearestFilter;
-							texmap[id] = {
-								cvs: canvas,
-								tex: map
-							};
-						}
-                        //guniforms.tTex.value = map;
+                        var src = new Uint8Array( data, 16, w*h*4 );
+						var map = new THREE.DataTexture( src, w, h, THREE.RGBAFormat );
+						map.needsUpdate = true;
+						map.minFilter = map.magFilter = THREE.NearestFilter;
+						texmap[id] = {
+							tex: map
+						};
                         break;
                 }
 
@@ -715,7 +656,6 @@ var touchStarted = false, // detect if a touch event is sarted
             // update render and dat.gui
             onRenderTriangles(scenes[l]);
         }
-        onUpdateGui();
     }
 
     function addVtx( data, idx ) {
@@ -793,28 +733,5 @@ var touchStarted = false, // detect if a touch event is sarted
 				renderer.render( scene, camera );
 			}
         }
-    }
-
-    function onUpdateGui() {
-        if( datgui.windows.length != ( gcmdcount+1 ) ) {
-            datgui.windows = [ 'Origin' ];
-            for ( var i = 0; i < gcmdcount; i++ )
-                datgui.windows[ i+1 ] = i+1;
-            gui.remove( datgui_window );
-            datgui_window = gui.add( datgui, 'window', datgui.windows );
-            datgui_window.onChange( onFocusWindow );
-        }
-    }
-
-    function onFocusWindow( value ) {
-        if( value == 'Origin' ) {
-            camera_offset.x = 0;
-            camera_offset.y = 0;
-        }
-        else {
-            var idx = parseInt( value ) - 1;
-            camera_offset.x = Math.round( - 50 + ( gclips[ idx ].clip.x + 1 ) * width / 2.0 );
-            camera_offset.y = Math.round( - 50 + ( gclips[ idx ].clip.y + 1 ) * height / 2.0 );
-        }
-    }    
+    }  
 }
