@@ -3879,8 +3879,8 @@ namespace ImGuiCe {
                 // From the moment we focused we are ignoring the content of 'buf' (unless we are in read-only mode)
                 const int prev_len_w = edit_state.CurLenW;
                 edit_state.TextW.resize(buf_size + 1);        // wchar count <= utf-8 count. we use +1 to make sure that .Data isn't NULL so it doesn't crash.
-                edit_state.InitialText.resize(buf_size + 1); // utf-8. we use +1 to make sure that .Data isn't NULL so it doesn't crash.
-                ImFormatString(edit_state.InitialText.Data, edit_state.InitialText.Size, "%s", buf);
+                edit_state.InitialTextA.resize(buf_size + 1); // utf-8. we use +1 to make sure that .Data isn't NULL so it doesn't crash.
+                ImFormatString(edit_state.InitialTextA.Data, edit_state.InitialTextA.Size, "%s", buf);
                 const char* buf_end = NULL;
                 edit_state.CurLenW = ImTextStrFromUtf8(edit_state.TextW.Data, edit_state.TextW.Size, buf, NULL, &buf_end);
                 edit_state.CurLenA = (int)(buf_end - buf); // We can't get the result from ImFormatString() above because it is not UTF-8 aware. Here we'll cut off malformed UTF-8.
@@ -3899,10 +3899,10 @@ namespace ImGuiCe {
                 {
                     edit_state.ID = id;
                     edit_state.ScrollX = 0.0f;
-                    stb_textedit_initialize_state(&edit_state.StbState, false);
+                    stb_textedit_initialize_state(&edit_state.Stb, false);
                 }
                 if (flags & ImGuiInputTextFlags_AlwaysInsertMode)
-                    edit_state.StbState.insert_mode = true;
+                    edit_state.Stb.insert_mode = true;
             }
             SetActiveID(id, window);
             SetFocusID(id, window);
@@ -3966,13 +3966,13 @@ namespace ImGuiCe {
             {
                 if (hovered)
                 {
-                    stb_textedit_click(&edit_state, &edit_state.StbState, mouse_x, mouse_y);
+                    stb_textedit_click(&edit_state, &edit_state.Stb, mouse_x, mouse_y);
                     edit_state.CursorAnimReset();
                 }
             }
             else if (io.MouseDown[0] && !edit_state.SelectedAllMouseLock && (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f))
             {
-                stb_textedit_drag(&edit_state, &edit_state.StbState, mouse_x, mouse_y);
+                stb_textedit_drag(&edit_state, &edit_state.Stb, mouse_x, mouse_y);
                 edit_state.CursorAnimReset();
                 edit_state.CursorFollow = true;
             }
@@ -4020,13 +4020,13 @@ namespace ImGuiCe {
                 else if (IsKeyPressedMap(ImGuiKey_UpArrow)) { if (io.KeyCtrl) SetWindowScrollY(draw_window, ImMax(draw_window->Scroll.y - g.FontSize, 0.0f)); else edit_state.OnKeyPressed((is_startend_key_down ? STB_TEXTEDIT_K_TEXTSTART : STB_TEXTEDIT_K_UP) | k_mask); }
                 else if (IsKeyPressedMap(ImGuiKey_DownArrow)) { if (io.KeyCtrl) SetWindowScrollY(draw_window, ImMin(draw_window->Scroll.y + g.FontSize, GetScrollMaxY())); else edit_state.OnKeyPressed((is_startend_key_down ? STB_TEXTEDIT_K_TEXTEND : STB_TEXTEDIT_K_DOWN) | k_mask); }
                 else if (IsKeyPressedMap(ImGuiKey_Home)) {
-                    const int cursorStart = edit_state.StbState.cursor;
+                    const int cursorStart = edit_state.Stb.cursor;
                     edit_state.OnKeyPressed(is_ctrl_down ? STB_TEXTEDIT_K_TEXTSTART | k_mask : STB_TEXTEDIT_K_LINESTART | k_mask);
                     const bool skipInitialTabs = true;  // if we want to place the cursor past the initial tabs in this line
                     const bool skipSpacesToo = true;
                     if (skipInitialTabs) {
                         int numTabs = 0;
-                        int lineStart = edit_state.StbState.cursor;
+                        int lineStart = edit_state.Stb.cursor;
                         while (--lineStart > 0) {
                             if (buf[lineStart] == '\n') { ++lineStart; break; }
                         }
@@ -4057,12 +4057,12 @@ namespace ImGuiCe {
                         const bool matchTabsInPreviousLine = true;  // if we want to match tabs from the previous line after this block...
                         int numTabs = 0;
                         if (matchTabsInPreviousLine) {
-                            int prevLineStart = edit_state.StbState.cursor;
+                            int prevLineStart = edit_state.Stb.cursor;
                             while (--prevLineStart > 0) {
                                 if (buf[prevLineStart] == '\n') { prevLineStart++; break; }
                             }
                             //fprintf(stderr,"edit_state.StbState.cursor=%d prevLineStart=%d\n",edit_state.StbState.cursor,prevLineStart);
-                            while (prevLineStart <= edit_state.StbState.cursor && buf[prevLineStart++] == '\t') ++numTabs;  // Valgrind might warn: Invalid read size of 1 here (basically I don't know how to stop search at the beginning of the file)
+                            while (prevLineStart <= edit_state.Stb.cursor && buf[prevLineStart++] == '\t') ++numTabs;  // Valgrind might warn: Invalid read size of 1 here (basically I don't know how to stop search at the beginning of the file)
 
                         }
 
@@ -4093,11 +4093,11 @@ namespace ImGuiCe {
                     // Cut, Copy
                     if (io.SetClipboardTextFn)
                     {
-                        const int ib = edit_state.HasSelection() ? ImMin(edit_state.StbState.select_start, edit_state.StbState.select_end) : 0;
-                        const int ie = edit_state.HasSelection() ? ImMax(edit_state.StbState.select_start, edit_state.StbState.select_end) : edit_state.CurLenW;
-                        edit_state.TempBuffer.resize((ie - ib) * 4 + 1);
-                        ImTextStrToUtf8(edit_state.TempBuffer.Data, edit_state.TempBuffer.Size, edit_state.TextW.Data + ib, edit_state.TextW.Data + ie);
-                        SetClipboardText(edit_state.TempBuffer.Data);
+                        const int ib = edit_state.HasSelection() ? ImMin(edit_state.Stb.select_start, edit_state.Stb.select_end) : 0;
+                        const int ie = edit_state.HasSelection() ? ImMax(edit_state.Stb.select_start, edit_state.Stb.select_end) : edit_state.CurLenW;
+                        edit_state.TextA.resize((ie - ib) * 4 + 1);
+                        ImTextStrToUtf8(edit_state.TextA.Data, edit_state.TextA.Size, edit_state.TextW.Data + ib, edit_state.TextW.Data + ie);
+                        SetClipboardText(edit_state.TextA.Data);
                     }
 
                     if (is_cut)
@@ -4105,7 +4105,7 @@ namespace ImGuiCe {
                         if (!edit_state.HasSelection())
                             edit_state.SelectAll();
                         edit_state.CursorFollow = true;
-                        stb_textedit_cut(&edit_state, &edit_state.StbState);
+                        stb_textedit_cut(&edit_state, &edit_state.Stb);
                     }
                 }
                 else if (is_paste) {
@@ -4129,7 +4129,7 @@ namespace ImGuiCe {
                         clipboard_filtered[clipboard_filtered_len] = 0;
                         if (clipboard_filtered_len > 0) // If everything was filtered, ignore the pasting operation
                         {
-                            stb_textedit_paste(&edit_state, &edit_state.StbState, clipboard_filtered, clipboard_filtered_len);
+                            stb_textedit_paste(&edit_state, &edit_state.Stb, clipboard_filtered, clipboard_filtered_len);
                             edit_state.CursorFollow = true;
                         }
                         ImGui::MemFree(clipboard_filtered);
@@ -4141,10 +4141,10 @@ namespace ImGuiCe {
             int apply_new_text_length = 0;
             if (cancel_edit) {
                 // Restore initial value. Only return true if restoring to the initial value changes the current buffer contents.
-                if (is_editable && strcmp(buf, edit_state.InitialText.Data) != 0)
+                if (is_editable && strcmp(buf, edit_state.InitialTextA.Data) != 0)
                 {
-                    apply_new_text = edit_state.InitialText.Data;
-                    apply_new_text_length = edit_state.InitialText.Size - 1;
+                    apply_new_text = edit_state.InitialTextA.Data;
+                    apply_new_text_length = edit_state.InitialTextA.Size - 1;
                 }
             }
 
@@ -4159,8 +4159,8 @@ namespace ImGuiCe {
                 // FIXME-OPT: CPU waste to do this every time the widget is active, should mark dirty state from the stb_textedit callbacks.
                 if (is_editable)
                 {
-                    edit_state.TempBuffer.resize(edit_state.TextW.Size * 4 + 1);
-                    ImTextStrToUtf8(edit_state.TempBuffer.Data, edit_state.TempBuffer.Size, edit_state.TextW.Data, NULL);
+                    edit_state.TextA.resize(edit_state.TextW.Size * 4 + 1);
+                    ImTextStrToUtf8(edit_state.TextA.Data, edit_state.TextA.Size, edit_state.TextW.Data, NULL);
                 }
 
                 // User callback
@@ -4198,27 +4198,27 @@ namespace ImGuiCe {
                         callback_data.UserData = callback_user_data;
 
                         callback_data.EventKey = event_key;
-                        callback_data.Buf = edit_state.TempBuffer.Data;
+                        callback_data.Buf = edit_state.TextA.Data;
                         callback_data.BufTextLen = edit_state.CurLenA;
                         callback_data.BufSize = edit_state.BufCapacityA;
                         callback_data.BufDirty = false;
 
                         // We have to convert from wchar-positions to UTF-8-positions, which can be pretty slow (an incentive to ditch the ImWchar buffer, see https://github.com/nothings/stb/issues/188)
                         ImWchar* text = edit_state.TextW.Data;
-                        const int utf8_cursor_pos = callback_data.CursorPos = ImTextCountUtf8BytesFromStr(text, text + edit_state.StbState.cursor);
-                        const int utf8_selection_start = callback_data.SelectionStart = ImTextCountUtf8BytesFromStr(text, text + edit_state.StbState.select_start);
-                        const int utf8_selection_end = callback_data.SelectionEnd = ImTextCountUtf8BytesFromStr(text, text + edit_state.StbState.select_end);
+                        const int utf8_cursor_pos = callback_data.CursorPos = ImTextCountUtf8BytesFromStr(text, text + edit_state.Stb.cursor);
+                        const int utf8_selection_start = callback_data.SelectionStart = ImTextCountUtf8BytesFromStr(text, text + edit_state.Stb.select_start);
+                        const int utf8_selection_end = callback_data.SelectionEnd = ImTextCountUtf8BytesFromStr(text, text + edit_state.Stb.select_end);
 
                         // Call user code
                         callback(&callback_data);
 
                         // Read back what user may have modified
-                        IM_ASSERT(callback_data.Buf == edit_state.TempBuffer.Data);  // Invalid to modify those fields
+                        IM_ASSERT(callback_data.Buf == edit_state.TextA.Data);  // Invalid to modify those fields
                         IM_ASSERT(callback_data.BufSize == edit_state.BufCapacityA);
                         IM_ASSERT(callback_data.Flags == flags);
-                        if (callback_data.CursorPos != utf8_cursor_pos) { edit_state.StbState.cursor = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.CursorPos); edit_state.CursorFollow = true; }
-                        if (callback_data.SelectionStart != utf8_selection_start) { edit_state.StbState.select_start = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.SelectionStart); }
-                        if (callback_data.SelectionEnd != utf8_selection_end) { edit_state.StbState.select_end = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.SelectionEnd); }
+                        if (callback_data.CursorPos != utf8_cursor_pos) { edit_state.Stb.cursor = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.CursorPos); edit_state.CursorFollow = true; }
+                        if (callback_data.SelectionStart != utf8_selection_start) { edit_state.Stb.select_start = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.SelectionStart); }
+                        if (callback_data.SelectionEnd != utf8_selection_end) { edit_state.Stb.select_end = ImTextCountCharsFromUtf8(callback_data.Buf, callback_data.Buf + callback_data.SelectionEnd); }
                         if (callback_data.BufDirty)
                         {
                             IM_ASSERT(callback_data.BufTextLen == (int)strlen(callback_data.Buf)); // You need to maintain BufTextLen if you change the text!
@@ -4232,9 +4232,9 @@ namespace ImGuiCe {
                 }
 
                 // Will copy result string if modified
-                if (is_editable && strcmp(edit_state.TempBuffer.Data, buf) != 0)
+                if (is_editable && strcmp(edit_state.TextA.Data, buf) != 0)
                 {
-                    apply_new_text = edit_state.TempBuffer.Data;
+                    apply_new_text = edit_state.TextA.Data;
                     apply_new_text_length = edit_state.CurLenA;
                 }
             }
@@ -4260,7 +4260,7 @@ namespace ImGuiCe {
                 }
 
                 // If the underlying buffer resize was denied or not carried to the next frame, apply_new_text_length+1 may be >= buf_size.
-                ImStrncpy(buf, edit_state.TempBuffer.Data, apply_new_text_length + 1 < (int)buf_size ? apply_new_text_length + 1 : (int)buf_size);
+                ImStrncpy(buf, edit_state.TextA.Data, apply_new_text_length + 1 < (int)buf_size ? apply_new_text_length + 1 : (int)buf_size);
                 //ImStrncpy(buf, apply_new_text,  apply_new_text_length+1<(int)buf_size?apply_new_text_length+1:(int)buf_size);    // with this replacement, ESC undos edit changes
                 value_changed = true;
             }
@@ -4297,13 +4297,13 @@ namespace ImGuiCe {
             {
                 // Count lines + find lines numbers straddling 'cursor' and 'select_start' position.
                 const ImWchar* searches_input_ptr[2];
-                searches_input_ptr[0] = text_begin + edit_state.StbState.cursor;
+                searches_input_ptr[0] = text_begin + edit_state.Stb.cursor;
                 searches_input_ptr[1] = NULL;
                 int searches_remaining = 1;
                 int searches_result_line_number[2] = { -1, -999 };
-                if (edit_state.StbState.select_start != edit_state.StbState.select_end)
+                if (edit_state.Stb.select_start != edit_state.Stb.select_end)
                 {
-                    searches_input_ptr[1] = text_begin + ImMin(edit_state.StbState.select_start, edit_state.StbState.select_end);
+                    searches_input_ptr[1] = text_begin + ImMin(edit_state.Stb.select_start, edit_state.Stb.select_end);
                     searches_result_line_number[1] = -1;
                     searches_remaining++;
                 }
@@ -4378,10 +4378,10 @@ namespace ImGuiCe {
             render_scroll = ImVec2(edit_state.ScrollX, 0.0f);
 
             // Draw selection
-            if (edit_state.StbState.select_start != edit_state.StbState.select_end)
+            if (edit_state.Stb.select_start != edit_state.Stb.select_end)
             {
-                const ImWchar* text_selected_begin = text_begin + ImMin(edit_state.StbState.select_start, edit_state.StbState.select_end);
-                const ImWchar* text_selected_end = text_begin + ImMax(edit_state.StbState.select_start, edit_state.StbState.select_end);
+                const ImWchar* text_selected_begin = text_begin + ImMin(edit_state.Stb.select_start, edit_state.Stb.select_end);
+                const ImWchar* text_selected_end = text_begin + ImMax(edit_state.Stb.select_start, edit_state.Stb.select_end);
 
                 float bg_offy_up = 0.0f;
                 float bg_offy_dn = 0.0f;
