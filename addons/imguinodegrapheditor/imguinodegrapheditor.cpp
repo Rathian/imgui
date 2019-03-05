@@ -487,17 +487,19 @@ namespace ImGui {
     int depthmatch(char *pre, const char *str, const char* &offset)
     {
         int depth = 0;
+		const char* po = NULL;
         if (pre && str) {
             while (*pre && *str && *pre == *str) {
-                if (*pre == '\\') {
+                if (*pre == '\\' || *pre == '/') {
                     depth++;
                     offset = str + 1;
-                    while (*++pre) {
-                        *pre++ = '\0';
-                    }
+                    po = pre;
                 }
                 pre++;
                 str++;
+            }
+			while (po && *++po) {
+                *po++ = '\0';
             }
         }
         return depth;
@@ -532,6 +534,8 @@ namespace ImGui {
             if (depth == rd) {
                 while (true) {
                     const char* part = strchr(name, '\\');
+					if (part == NULL)
+						part = strchr(name, '/');
                     if (part == NULL) {
                         ImGui::PushID(nt);
                         if ((ni.maxNumInstances < 0 || ni.curNumInstances < ni.maxNumInstances) && ImGui::MenuItem(name)) {
