@@ -193,6 +193,7 @@ void WebSocketServer::OnMessage(OpCode opcode, const void *data, int /*size*/)
     {
         // Text message
     case WebSocketServer::Text:
+        //printf("%s\n", data);
         if (!ClientActive)
         {
             if (!memcmp(data, "ImInit", 6))
