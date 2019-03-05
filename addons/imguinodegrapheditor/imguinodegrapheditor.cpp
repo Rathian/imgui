@@ -487,7 +487,7 @@ namespace ImGui {
     int depthmatch(char *pre, const char *str, const char* &offset)
     {
         int depth = 0;
-		const char* po = NULL;
+		char* po = NULL;
         if (pre && str) {
             while (*pre && *str && *pre == *str) {
                 if (*pre == '\\' || *pre == '/') {

@@ -424,15 +424,15 @@ var touchStarted = false, // detect if a touch event is sarted
         var pointer =  event; //getPointerEvent(event);
         if(touchInertial)
         {
-            clearInterval(ticker);
+            //clearInterval(ticker);
             touchInertial = false;
         }
         // caching the current x
-        cachedX = currX = pointer.pageX;
+        cachedX = currX = pointer.touches[0].pageX;
         // caching the current y
-        cachedY = currY = pointer.pageY;
+        cachedY = currY = pointer.touches[0].pageY;
         // a touch event is detected      
-        websocket.send("ImMouseMove=" + currX + "," + currY + ",0,0,0");
+        websocket.send("ImMouseMove=" + Math.round(currX) + "," + Math.round(currY) + ",0,0,0");
 
         setTimeout(function (){
             touchStarted = true;
@@ -440,16 +440,16 @@ var touchStarted = false, // detect if a touch event is sarted
             //console.log("50ms ImMousePress=1,0");
             websocket.send("ImMousePress=1,0,0");
             // detecting if after 200ms the finger is still in the same position
-            clearTimeout(touchPressTimeout);
-            touchPressTimeout = setTimeout(function ()
-            {
-                if ((cachedX === currX) && (cachedY === currY)) 
-                {
-                    //console.log("200ms ImMousePress=0,0");
-                    websocket.send("ImMousePress=0,0,0");
-                    touchStarted = false;
-                }
-            },150);
+             clearTimeout(touchPressTimeout);
+             touchPressTimeout = setTimeout(function ()
+             {
+                  if ((cachedX === currX) && (cachedY === currY)) 
+                  {
+                    // // //console.log("200ms ImMousePress=0,0");
+                     websocket.send("ImMousePress=0,0,0");
+                     touchStarted = false;
+                  }
+             },350);
         },50);
       
     
@@ -460,27 +460,31 @@ var touchStarted = false, // detect if a touch event is sarted
         if( !event ) event = window.event;
         event.preventDefault();
         // here we can consider finished the touch event
-        if(touchDragging)
-        {
-            amplitude = initialVelocity * scaleFactor;
-            targetPosition = position + amplitude;
-            timestamp = Date.now();
-            touchInertial = true;
-            ticker = setInterval(function()
-            {
-                var elapsed = Date.now() - timestamp;
-                var delta = amplitude * Math.exp(-elapsed / timeConstant);
-                websocket.send("ImMouseWheelDelta=" + delta);
-                position = targetPosition - delta;
-                if (elapsed > 6 * timeConstant) 
-                {
-                    touchInertial = false;
-                    clearInterval(ticker);
-                }
-            }, updateInterval);
-
-        }
-        else if(touchStarted)
+        // if(touchDragging)
+        // {
+            // amplitude = initialVelocity * scaleFactor;
+            // targetPosition = position + amplitude;
+            // timestamp = Date.now();
+            // touchInertial = true;
+            // ticker = setInterval(function()
+            // {
+                // var elapsed = Date.now() - timestamp;
+                // var delta = amplitude * Math.exp(-elapsed / timeConstant);
+               // // websocket.send("ImMouseWheelDelta=" + delta);
+                // position = targetPosition - delta;
+                // if (elapsed > 6 * timeConstant) 
+                // {
+                    // touchInertial = false;
+                    // clearInterval(ticker);
+                // }
+            // }, updateInterval);
+			// websocket.send("ImMousePress=0,0,0");
+			// setTimeout(function (){
+				// websocket.send("ImMouseMove=" + currX + "," + currY + ",0,0,0");
+			// },50);
+        // }
+        // else 
+			if(touchStarted)
         {
             clearTimeout(touchPressTimeout);
             //console.log("ontouchend ImMousePress=0,0");
@@ -495,8 +499,8 @@ var touchStarted = false, // detect if a touch event is sarted
         if( !event ) event = window.event;
         event.preventDefault();
         var pointer = event; //getPointerEvent(e);
-        currX = pointer.pageX;
-        currY = pointer.pageY;
+        currX = pointer.touches[0].pageX;
+        currY = pointer.touches[0].pageY;
         if(touchStarted) 
         {
              // here you are swiping
@@ -506,9 +510,9 @@ var touchStarted = false, // detect if a touch event is sarted
                 var diffY = (currY - cachedY) * 5;
                 cachedY = currY;
                 initialVelocity = diffY;
-                //websocket.send("ImMouseMove=" + currX + "," + currY + ",1,0");        
-                console.log("ImMouseWheelDelta=" + diffY);
-                websocket.send("ImMouseWheelDelta=" + diffY);
+                websocket.send("ImMouseMove=" + Math.round(currX) + "," + Math.round(currY) + ",1,0,0");        
+               // console.log("ImMouseWheelDelta=" + diffY);
+                //websocket.send("ImMouseWheelDelta=" + diffY);
              }
         }   
     }
