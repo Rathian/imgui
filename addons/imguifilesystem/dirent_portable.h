@@ -764,7 +764,7 @@ dirent_mbstowcs_s(
     wchar_t *wcstr,
     size_t sizeInWords,
     const char *mbstr,
-    size_t /*count*/)
+    size_t count)
 {
     int error;
 #ifndef DIRENT_USE_ASCII_SHORT_PATHS_ON_WINDOWS
@@ -865,7 +865,7 @@ dirent_wcstombs_s(
     char *mbstr,
     size_t sizeInBytes, /* max size of mbstr */
     const wchar_t *wcstr,
-    size_t /*count*/)
+    size_t count)
 {
     int error;
 

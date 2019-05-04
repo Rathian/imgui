@@ -164,7 +164,7 @@ inline static void GetVerticalGradientTopAndBottomColors(ImU32 c,float fillColor
 
     // New code:
     //#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
-    const int fcgi = (int)(fillColorGradientDeltaIn0_05*255.0f);
+    const int fcgi = fillColorGradientDeltaIn0_05*255.0f;
     const int R = (unsigned char) (c>>IM_COL32_R_SHIFT);    // The cast should reset upper bits (as far as I hope)
     const int G = (unsigned char) (c>>IM_COL32_G_SHIFT);
     const int B = (unsigned char) (c>>IM_COL32_B_SHIFT);
@@ -226,7 +226,7 @@ void ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList *dl, const ImV
             else if (h > maxy) maxy = h;
         }
     }
-    height = (int)(maxy-miny);
+    height = maxy-miny;
     const ImVec4 colTopf = ColorConvertU32ToFloat4(colTop);
     const ImVec4 colBotf = ColorConvertU32ToFloat4(colBot);
 
@@ -281,8 +281,8 @@ void ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList *dl, const ImV
             // Add vertices
             //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
             //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
-            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i1].y-miny,(float)height);        // Inner
-            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransTopf,colTransBotf,points[i1].y-miny,(float)height);  // Outer
+            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i1].y-miny,height);        // Inner
+            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransTopf,colTransBotf,points[i1].y-miny,height);  // Outer
             dl->_VtxWritePtr += 2;
 
             // Add indexes for fringes
@@ -301,7 +301,7 @@ void ImDrawListAddConvexPolyFilledWithVerticalGradient(ImDrawList *dl, const ImV
         for (int i = 0; i < vtx_count; i++)
         {
             //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
-            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i].y-miny,(float)height);
+            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colTopf,colBotf,points[i].y-miny,height);
             dl->_VtxWritePtr++;
         }
         for (int i = 2; i < points_count; i++)
@@ -415,7 +415,7 @@ void ImDrawListAddConvexPolyFilledWithHorizontalGradient(ImDrawList *dl, const I
             else if (w > maxx) maxx = w;
         }
     }
-    width = (int)(maxx-minx);
+    width = maxx-minx;
     const ImVec4 colLeftf  = ColorConvertU32ToFloat4(colLeft);
     const ImVec4 colRightf = ColorConvertU32ToFloat4(colRight);
 
@@ -470,8 +470,8 @@ void ImDrawListAddConvexPolyFilledWithHorizontalGradient(ImDrawList *dl, const I
             // Add vertices
             //_VtxWritePtr[0].pos = (points[i1] - dm); _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;        // Inner
             //_VtxWritePtr[1].pos = (points[i1] + dm); _VtxWritePtr[1].uv = uv; _VtxWritePtr[1].col = col_trans;  // Outer
-            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i1].x-minx,(float)width);        // Inner
-            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransLeftf,colTransRightf,points[i1].x-minx,(float)width);  // Outer
+            dl->_VtxWritePtr[0].pos = (points[i1] - dm); dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i1].x-minx,width);        // Inner
+            dl->_VtxWritePtr[1].pos = (points[i1] + dm); dl->_VtxWritePtr[1].uv = uv; dl->_VtxWritePtr[1].col = GetVerticalGradient(colTransLeftf,colTransRightf,points[i1].x-minx,width);  // Outer
             dl->_VtxWritePtr += 2;
 
             // Add indexes for fringes
@@ -490,7 +490,7 @@ void ImDrawListAddConvexPolyFilledWithHorizontalGradient(ImDrawList *dl, const I
         for (int i = 0; i < vtx_count; i++)
         {
             //_VtxWritePtr[0].pos = points[i]; _VtxWritePtr[0].uv = uv; _VtxWritePtr[0].col = col;
-            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i].x-minx,(float)width);
+            dl->_VtxWritePtr[0].pos = points[i]; dl->_VtxWritePtr[0].uv = uv; dl->_VtxWritePtr[0].col = GetVerticalGradient(colLeftf,colRightf,points[i].x-minx,width);
             dl->_VtxWritePtr++;
         }
         for (int i = 2; i < points_count; i++)

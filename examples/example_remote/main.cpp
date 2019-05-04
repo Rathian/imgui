@@ -230,7 +230,7 @@ int main(int, char**)
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(8));
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
     ImGui::DestroyContext();
 

@@ -106,7 +106,7 @@ void TestProgressBar()  {
     ImGui::ProgressBar("ProgressBar",progress);
     ImGui::ProgressBar("ProgressBar",1.f-progress);
     ImGui::ProgressBar("",500+progress*1000,500,1500,"%4.0f (absolute value in [500,1500] and fixed bar size)",ImVec2(150,-1));
-    ImGui::ProgressBar("",500+progress*1000,500,1500,"%3.0f%% (same as above, but with percentage and new colors)",ImVec2(150,-1),ImVec4(0.7f,0.7f,1,1),ImVec4(0.05f,0.15f,0.5f,0.8f),ImVec4(0.8f,0.8f,0,1));
+    ImGui::ProgressBar("",500+progress*1000,500,1500,"%3.0f%% (same as above, but with percentage and new colors)",ImVec2(150,-1),ImVec4(0.7,0.7,1,1),ImVec4(0.05,0.15,0.5,0.8),ImVec4(0.8,0.8,0,1));
     // This one has just been added to ImGui:
     //char txt[48]="";sprintf(txt,"%3d%% (ImGui default progress bar)",(int)(progress*100));
     //ImGui::ProgressBar(progress,ImVec2(0,0),txt);
@@ -225,7 +225,7 @@ int PopupMenuSimple(PopupMenuSimpleParams &params, const char **pTotalEntries, i
 
     if (params.hoveredEntry<=-2 || params.selectedEntry<=-2)   {
         if (oldHoveredEntry!=params.hoveredEntry) params.scrollTimer = ImGui::GetTime();
-        const double newTime = ImGui::GetTime();
+        const float newTime = ImGui::GetTime();
         if (params.selectedEntry<=-2 || (newTime - params.scrollTimer > 0.4f))    {
             params.scrollTimer = newTime;
             if (params.hoveredEntry==-2 || params.selectedEntry==-2)   {if (params.startIndex>0) {--params.startIndex;--params.endIndex;}}
@@ -299,8 +299,8 @@ inline static bool ColorChooserInternal(ImVec4 *pColorOut,bool supportsAlpha,boo
             for (int x = 0; x < step; x++) {
                 float s0 = (float)x / (float)step;
                 float s1 = (float)(x + 1) / (float)step;
-                float v0 = 1.0f - (float)(y) / (float)step;
-                float v1 = 1.0f - (float)(y + 1) / (float)step;
+                float v0 = 1.0 - (float)(y) / (float)step;
+                float v1 = 1.0 - (float)(y + 1) / (float)step;
 
 
                 ImGui::ColorConvertHSVtoRGB(hue, s0, v0, c00.x, c00.y, c00.z);
@@ -359,7 +359,7 @@ inline static bool ColorChooserInternal(ImVec4 *pColorOut,bool supportsAlpha,boo
             ImGui::ColorConvertHSVtoRGB(tint0, 1.0, 1.0, c0.x, c0.y, c0.z);
             ImGui::ColorConvertHSVtoRGB(tint1, 1.0, 1.0, c1.x, c1.y, c1.z);
 
-            window->DrawList->AddRectFilledMultiColor(window->Pos + pos, window->Pos + pos + ImVec2((float)width, quadSize / step),
+            window->DrawList->AddRectFilledMultiColor(window->Pos + pos, window->Pos + pos + ImVec2(width, quadSize / step),
                                                       ColorConvertFloat4ToU32(c0),
                                                       ColorConvertFloat4ToU32(c0),
                                                       ColorConvertFloat4ToU32(c1),
@@ -408,10 +408,10 @@ inline static bool ColorChooserInternal(ImVec4 *pColorOut,bool supportsAlpha,boo
 
 
             {
-                int r = (int)(ImSaturate( useHsvSliders ? hue : color.x )*255.f);
-                int g = (int)(ImSaturate( useHsvSliders ? sat : color.y )*255.f);
-                int b = (int)(ImSaturate( useHsvSliders ? val : color.z )*255.f);
-                int a = (int)(ImSaturate( color.w )*255.f);
+                int r = ImSaturate( useHsvSliders ? hue : color.x )*255.f;
+                int g = ImSaturate( useHsvSliders ? sat : color.y )*255.f;
+                int b = ImSaturate( useHsvSliders ? val : color.z )*255.f;
+                int a = ImSaturate( color.w )*255.f;
 
                 static const char* names[2][3]={{"R","G","B"},{"H","S","V"}};
                 bool sliderMoved = false;
@@ -884,10 +884,10 @@ struct AnimatedImageInternal {
 
         float lastDelay = delay;
         if (timer>0) {
-            delay = (float)ImGui::GetTime()*100.f-timer;
+            delay = ImGui::GetTime()*100.f-timer;
             if (delay<0) timer = -1.f;
         }
-        if (timer<0) {timer = (float)ImGui::GetTime()*100.f;delay=0.f;}
+        if (timer<0) {timer = ImGui::GetTime()*100.f;delay=0.f;}
 
         const int imageSz = 4 * w * h;
         IM_ASSERT(sizeof(unsigned short)==2*sizeof(unsigned char));
@@ -1060,9 +1060,9 @@ struct AnimatedImageInternal {
         ImGuiWindow* window = GetCurrentWindow();
         if (window->SkipItems)
             return;
-        if (size.x==0) size.x=(float)w;
+        if (size.x==0) size.x=w;
         else if (size.x<0) size.x=-size.x*w;
-        if (size.y==0) size.y=(float)h;
+        if (size.y==0) size.y=h;
         else if (size.y<0) size.y=-size.y*h;
         size*=window->FontWindowScale*ImGui::GetIO().FontGlobalScale;
 
@@ -1112,9 +1112,9 @@ struct AnimatedImageInternal {
         if (window->SkipItems)
             return false;
 
-        if (size.x==0) size.x=(float)w;
+        if (size.x==0) size.x=w;
         else if (size.x<0) size.x=-size.x*w;
-        if (size.y==0) size.y=(float)h;
+        if (size.y==0) size.y=h;
         else if (size.y<0) size.y=-size.y*h;
         size*=window->FontWindowScale*ImGui::GetIO().FontGlobalScale;
 
@@ -1352,7 +1352,7 @@ bool ImageZoomAndPan(ImTextureID user_texture_id, const ImVec2& size,float aspec
             }
             else  {
                 const bool scrollDown = io.MouseWheel <= 0;
-                const float zoomFactor = .5f/zoom;
+                const float zoomFactor = .5/zoom;
                 if ((!scrollDown && zoomCenter.y > zoomFactor) || (scrollDown && zoomCenter.y <  1.f - zoomFactor))  {
                     const float slideFactor = zoomMaxAndZoomStep.y*0.1f*zoomFactor;
                     if (scrollDown) {
@@ -1376,7 +1376,7 @@ bool ImageZoomAndPan(ImTextureID user_texture_id, const ImVec2& size,float aspec
         }
     }
 
-    const float zoomFactor = .5f/zoom;
+    const float zoomFactor = .5/zoom;
     if (rv) {
         if (zoomCenter.x < zoomFactor) zoomCenter.x = zoomFactor;
         else if (zoomCenter.x > 1.f - zoomFactor) zoomCenter.x = 1.f - zoomFactor;
@@ -1457,7 +1457,7 @@ inline static bool GlyphButton(ImGuiID id, const ImVec2& pos,const ImVec2& halfS
         col = (((col>>24)/2)<<24)|(col&0x00FFFFFF);
         textCol = (((textCol>>24)/2)<<24)|(textCol&0x00FFFFFF);
     }
-    window->DrawList->AddRectFilled(bb.GetTL(),bb.GetBR(), col, 0.0f, text ? 2 : 6);
+    window->DrawList->AddRectFilled(bb.GetTL(),bb.GetBR(), col, text ? 2 : 6);
 
     if (text) {
         const ImVec2 textSize = ImGui::CalcTextSize(text);
@@ -1542,7 +1542,7 @@ struct ImGuiPlotMultiArrayGetterData    {
 
         // New code:
         //#define IM_COL32(R,G,B,A)    (((ImU32)(A)<<IM_COL32_A_SHIFT) | ((ImU32)(B)<<IM_COL32_B_SHIFT) | ((ImU32)(G)<<IM_COL32_G_SHIFT) | ((ImU32)(R)<<IM_COL32_R_SHIFT))
-        const int fcgi = (int)(fillColorGradientDeltaIn0_05*255.0f);
+        const int fcgi = fillColorGradientDeltaIn0_05*255.0f;
         const int R = (unsigned char) (c>>IM_COL32_R_SHIFT);    // The cast should reset upper bits (as far as I hope)
         const int G = (unsigned char) (c>>IM_COL32_G_SHIFT);
         const int B = (unsigned char) (c>>IM_COL32_B_SHIFT);
@@ -1610,6 +1610,7 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f) graph_size.x = CalcItemWidth();
@@ -1628,6 +1629,8 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
         for (int i = 0; i < values_count; i++)  {
             for (int h=0;h<num_histograms;h++)  {
                 const float v = values_getter(data, (i + values_offset) % values_count, h);
+                if (v != v) // Ignore NaN values
+                    continue;
                 v_min = ImMin(v_min, v);
                 v_max = ImMax(v_max, v);
             }
@@ -1652,7 +1655,7 @@ int PlotHistogram(const char* label, float (*values_getter)(void* data, int idx,
 
         const int total_histograms = values_count * num_histograms;
 
-        const bool isItemHovered = ItemHoverable(inner_bb, 0);
+        const bool isItemHovered = ItemHoverable(inner_bb, id);
 
         if (!mustOverrideColors) col_base_embedded[0] = GetColorU32(ImGuiCol_PlotHistogram);
         const ImU32 lineCol = GetColorU32(ImGuiCol_WindowBg);
@@ -1797,6 +1800,7 @@ int PlotCurve(const char* label, float (*values_getter)(void* data, float x,int 
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f) graph_size.x = CalcItemWidth();
@@ -1832,7 +1836,7 @@ int PlotCurve(const char* label, float (*values_getter)(void* data, float x,int 
         const ImU32* col_base = mustOverrideColors ? pColorsOverride : col_base_embedded;
         const int num_colors = mustOverrideColors ? numColorsOverride : num_colors_embedded;
 
-        const bool isItemHovered = ItemHoverable(inner_bb, 0);
+        const bool isItemHovered = ItemHoverable(inner_bb, id);
 
         if (!mustOverrideColors) col_base_embedded[0] = GetColorU32(ImGuiCol_PlotLines);
 
@@ -2003,6 +2007,7 @@ static void PlotMultiEx(
 
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
 
     const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
     if (graph_size.x == 0.0f)
@@ -2044,7 +2049,7 @@ static void PlotMultiEx(
 
     // Tooltip on hover
     int v_hovered = -1;
-    if (ItemHoverable(inner_bb, 0))
+    if (ItemHoverable(inner_bb, id) && inner_bb.Contains(g.IO.MousePos))
     {
         const float t = ImClamp((g.IO.MousePos.x - inner_bb.Min.x) / (inner_bb.Max.x - inner_bb.Min.x), 0.0f, 0.9999f);
         const int v_idx = (int) (t * item_count);
@@ -2287,8 +2292,8 @@ bool InputTextWithAutoCompletion(const char* label, char* buf, size_t buf_size, 
             const int MaxNumTooltipItems = num_visible_autocompletion_items>0 ? num_visible_autocompletion_items : 7;
             const float textLineHeightWithSpacing = ImGui::GetTextLineHeightWithSpacing();
             const ImVec2 storedCursorScreenPos = ImGui::GetCursorScreenPos();
-            const int MaxNumItemsBelowInputText = (int)((ImGui::GetIO().DisplaySize.y - (storedCursorScreenPos.y+textLineHeightWithSpacing))/textLineHeightWithSpacing);
-            const int MaxNumItemsAboveInputText = (int)(storedCursorScreenPos.y/textLineHeightWithSpacing);
+            const int MaxNumItemsBelowInputText = (ImGui::GetIO().DisplaySize.y - (storedCursorScreenPos.y+textLineHeightWithSpacing))/textLineHeightWithSpacing;
+            const int MaxNumItemsAboveInputText = storedCursorScreenPos.y/textLineHeightWithSpacing;
             int numTTItems = numItems>MaxNumTooltipItems?MaxNumTooltipItems:numItems;
             bool useUpperScreen = false;
             if (numTTItems>MaxNumItemsBelowInputText && MaxNumItemsBelowInputText<MaxNumItemsAboveInputText)    {
@@ -3461,8 +3466,8 @@ bool BeginTimeline(const char* str_id, float max_value, int num_visible_rows, in
 {
     // reset global variables
     s_max_timeline_value=0.f;
-    s_timeline_num_rows = s_timeline_display_start = s_timeline_display_end = 0;
-    s_timeline_display_index = -1;
+    s_timeline_num_rows = s_timeline_display_start = s_timeline_display_end = 0.f;
+    s_timeline_display_index = -1.f;
     s_ptimeline_offset_and_scale = popt_offset_and_scale;
 
     if (s_ptimeline_offset_and_scale) {
@@ -3550,7 +3555,11 @@ bool TimelineEvent(const char* str_id, float* values,bool keep_range_constant)
         }
         if (active && isMouseDraggingZero)
         {
-            if (!keep_range_constant) values[i] += GetIO().MouseDelta.x / columnWidthScaled * s_max_timeline_value;
+            if (!keep_range_constant) {
+                values[i] += GetIO().MouseDelta.x / columnWidthScaled * s_max_timeline_value;
+                if (values[i]<0.f) values[i]=0.f;
+                else if (values[i]>s_max_timeline_value) values[i]=s_max_timeline_value;
+            }
             else mustMoveBothEnds = true;
             changed = hovered = true;
         }
@@ -3563,7 +3572,7 @@ bool TimelineEvent(const char* str_id, float* values,bool keep_range_constant)
     ImVec2 end(posx[1]-TIMELINE_RADIUS,start.y+row_height*0.4f);
     if (start.x<cursor_pos.x) start.x=cursor_pos.x;
     if (end.x>cursor_pos.x+columnWidth+TIMELINE_RADIUS) end.x=cursor_pos.x+columnWidth+TIMELINE_RADIUS;
-    const bool isInvisibleButtonCulled = start.x>cursor_pos.x+columnWidth || end.x<cursor_pos.x;
+    const bool isInvisibleButtonCulled = start.x>=cursor_pos.x+columnWidth || end.x<=cursor_pos.x;
 
     bool isInvisibleButtonItemActive=false;
     bool isInvisibleButtonItemHovered=false;
@@ -3809,7 +3818,7 @@ bool PasswordDrawer(char *password, int passwordSize,ImGuiPasswordDrawerFlags fl
     const float radius = imageQuadWidth*0.25f;
     const float radiusSquared = radius*radius;
     const float quadHalfSize = radius*0.175f;
-    int num_segments = (int)(radius*(42.f/100.f));
+    int num_segments = radius*(42.f/100.f);
     if (num_segments<5) num_segments=5;
     else if (num_segments>24) num_segments = 24;
     float thickness = radius*0.05f;
@@ -3840,7 +3849,7 @@ bool PasswordDrawer(char *password, int passwordSize,ImGuiPasswordDrawerFlags fl
                     //if (tmp.x>-radius && tmp.x<radius && tmp.y>-radius && tmp.y<radius) // This line can be commented out (is it faster or not?)
                     {
                         tmp.x*=tmp.x;tmp.y*=tmp.y;
-                        if (tmp.x+tmp.y<radiusSquared) charToAdd = (unsigned char)(minChar+cnt+1);
+                        if (tmp.x+tmp.y<radiusSquared) charToAdd = minChar+cnt+1;
                     }
                 }
             }
@@ -4030,18 +4039,18 @@ bool CheckboxStyled(const char* label, bool* v,const ImU32* pOptionalEightColors
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
-    static double timeBegin = -1.0;
+    static float timeBegin = -1.f;
     static ImGuiID timeID = 0;
-    static const double timeActionLength = 0.2;
+    static const float timeActionLength = 0.2f;
     if (pressed) {
         *v = !(*v); // change state soon
         if (timeID==id) {
             // Fine tuning for the case when user clicks on the same checkbox twice quickly
-            double elapsedTime = ImGui::GetTime()-timeBegin;
+            float elapsedTime = ImGui::GetTime()-timeBegin;
             if (elapsedTime>timeActionLength) timeBegin = ImGui::GetTime();   // restart
             else {
                 // We must invert the time, tweaking timeBegin
-                const double newElapsedTime = timeActionLength-elapsedTime;
+                const float newElapsedTime = timeActionLength-elapsedTime;
                 timeBegin= ImGui::GetTime()-newElapsedTime;
             }
         }
@@ -4052,24 +4061,24 @@ bool CheckboxStyled(const char* label, bool* v,const ImU32* pOptionalEightColors
     }
 
     // Widget Look Here ================================================================
-    double t = 0.0;    // In [0,1] 0 = OFF 1 = ON
+    float t = 0.f;    // In [0,1] 0 = OFF 1 = ON
     bool animationActive = false;
     if (timeID==id) {
-        double elapsedTime = ImGui::GetTime()-timeBegin;
+        float elapsedTime = ImGui::GetTime()-timeBegin;
         if (elapsedTime>timeActionLength) {timeBegin=-1;timeID=0;}
         else {
-            t = 1.0-elapsedTime/timeActionLength;
+            t = 1.f-elapsedTime/timeActionLength;
             animationActive = t>0;
         }
     }
-    if (*v) t = 1.0-t;
+    if (*v) t = 1.f-t;
     if (t<0) t=0;
     else if (t>1) t=1;
     const float check_bb_height = check_bb.GetHeight();
     const float innerFrameHeight = check_bb_height*0.5f*(checkBoxScale.y<=2.f?checkBoxScale.y:2.f);
     const float heightDelta = (check_bb_height-innerFrameHeight)*0.5f;
     const float check_bb_width = check_bb.GetWidth();
-    float widthFraction = (float)(check_bb_width*t);    
+    float widthFraction = check_bb_width*t;    
     float rounding = checkBoxRounding<0 ? style.WindowRounding : checkBoxRounding;//style.FrameRounding;
     rounding*=innerFrameHeight*0.065f;if (rounding>16.f) rounding = 16.f;
     ImRect innerFrame0(ImVec2(check_bb.Min.x,check_bb.Min.y+heightDelta),ImVec2(check_bb.Min.x+widthFraction,check_bb.Max.y-heightDelta));
@@ -4118,9 +4127,9 @@ bool CheckboxStyled(const char* label, bool* v,const ImU32* pOptionalEightColors
 			(GetColorU32((held || hovered) ? defaultCircleColorOnHovered : defaultCircleColorOn)));
 	int col0 = (int) (pOptionalEightColors ? ((held || hovered) ? pOptionalEightColors[3] : pOptionalEightColors[2]) :
 			(GetColorU32((held || hovered) ? defaultCircleColorOffHovered : defaultCircleColorOff)));
-	int r = ImLerp((col0 >> IM_COL32_R_SHIFT) & 0xFF, (col1 >> IM_COL32_R_SHIFT) & 0xFF, (float)t);
-	int g = ImLerp((col0 >> IM_COL32_G_SHIFT) & 0xFF, (col1 >> IM_COL32_G_SHIFT) & 0xFF, (float)t);
-	int b = ImLerp((col0 >> IM_COL32_B_SHIFT) & 0xFF, (col1 >> IM_COL32_B_SHIFT) & 0xFF, (float)t);
+	int r = ImLerp((col0 >> IM_COL32_R_SHIFT) & 0xFF, (col1 >> IM_COL32_R_SHIFT) & 0xFF, t);
+	int g = ImLerp((col0 >> IM_COL32_G_SHIFT) & 0xFF, (col1 >> IM_COL32_G_SHIFT) & 0xFF, t);
+	int b = ImLerp((col0 >> IM_COL32_B_SHIFT) & 0xFF, (col1 >> IM_COL32_B_SHIFT) & 0xFF, t);
 	int col = (r << IM_COL32_R_SHIFT) | (g << IM_COL32_G_SHIFT) | (b << IM_COL32_B_SHIFT) | (0xFF << IM_COL32_A_SHIFT);
 	window->DrawList->AddCircleFilled(center,radius,col,numSegments);
     }
@@ -4288,7 +4297,7 @@ void LoadingIndicatorCircle2(const char* label,float indicatorRadiusFactor, floa
 
     int num_segments = 30;
 
-    int start = (int)fabs(ImSin((float)(g.Time*1.8))*(num_segments-5));
+    int start = abs(ImSin(g.Time*1.8f)*(num_segments-5));
 
     const float a_min = IM_PI*2.0f * ((float)start) / (float)num_segments;
     const float a_max = IM_PI*2.0f * ((float)num_segments-3) / (float)num_segments;
@@ -4297,8 +4306,8 @@ void LoadingIndicatorCircle2(const char* label,float indicatorRadiusFactor, floa
 
     for (int i = 0; i < num_segments; i++) {
         const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
-        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a+(float)g.Time*8) * indicatorRadiusPixels,
-                                            centre.y + ImSin(a+(float)g.Time*8) * indicatorRadiusPixels));
+        window->DrawList->PathLineTo(ImVec2(centre.x + ImCos(a+g.Time*8) * indicatorRadiusPixels,
+                                            centre.y + ImSin(a+g.Time*8) * indicatorRadiusPixels));
     }
 
     window->DrawList->PathStroke(color, false, indicatorThicknessPixels);

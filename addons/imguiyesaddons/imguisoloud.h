@@ -146,7 +146,7 @@ The TED / SID support is based on tedplay (c) 2012 Attila Grosz, used under Unli
 #include <stdio.h> // for sprintf in asserts
 #define VC_EXTRALEAN
 #define WIN32_LEAN_AND_MEAN
-#include <WinBase.h> // only needed for OutputDebugStringA, should be solved somehow.
+#include <windows.h> // only needed for OutputDebugStringA, should be solved somehow.
 #define SOLOUD_ASSERT(x) if (!(x)) { char temp[200]; sprintf(temp, "%s(%d): assert(%s) failed.\n", __FILE__, __LINE__, #x); OutputDebugStringA(temp); __debugbreak(); }
 #else
 #include <assert.h> // assert

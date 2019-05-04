@@ -41,6 +41,20 @@ int tje_encode_to_file_at_quality(...)
 #   endif //IMGUI_API
 [...]
 }
+and in the definition of tje_log(msg) to support __EMSCRIPTEN__ and to prevent the definition from being undefined:
+#ifndef NDEBUG
+
+#ifdef _WIN32
+#define tje_log(msg) OutputDebugStringA(msg)
+#elif defined(__linux__) || defined(__MACH__) || defined(__EMSCRIPTEN__)
+#define tje_log(msg) puts(msg)
+#else
+#define tje_log(msg)
+#endif
+
+#else  // NDEBUG
+#define tje_log(msg)
+#endif  // NDEBUG
 */
 
 // ============================================================
@@ -199,8 +213,10 @@ static uint8_t tjei_g_output_buffer[TJEI_BUFFER_SIZE];
 
 #ifdef _WIN32
 #define tje_log(msg) OutputDebugStringA(msg)
-#elif defined(__linux__) || defined(__MACH__)
+#elif defined(__linux__) || defined(__MACH__) || defined(__EMSCRIPTEN__)
 #define tje_log(msg) puts(msg)
+#else
+#define tje_log(msg)
 #endif
 
 #else  // NDEBUG

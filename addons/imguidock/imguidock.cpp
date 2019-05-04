@@ -76,6 +76,7 @@ struct DockContext
 	    , invalid_frames(0)
             , opened(false)
 	    , first(false)
+        , focus(false)
 
         {
             location[0] = 0;
@@ -225,6 +226,7 @@ struct DockContext
         char location[16];
         bool opened;
         bool first;
+        bool focus;
     };
 
 
@@ -765,11 +767,12 @@ struct DockContext
     }
 
 
-    bool tabbar(Dock& dock, bool close_button)
+    void tabbar(Dock& dock, bool close_button, bool *tab_closed, bool *tab_clicked)
     {
         float tabbar_height = 2 * GetTextLineHeightWithSpacing();
         ImVec2 size(dock.size.x, tabbar_height);
-        bool tab_closed = false;
+        *tab_closed = false;
+        *tab_clicked = false;
 
         SetCursorScreenPos(dock.pos);
         char tmp[20];
@@ -781,6 +784,7 @@ struct DockContext
             ImDrawList* draw_list = GetWindowDrawList();
             ImU32 color = GetColorU32(ImGuiCol_FrameBg);
             ImU32 color_active = GetColorU32(ImGuiCol_FrameBgActive);
+            ImU32 color_focus = GetColorU32(ImGuiCol_ButtonActive);
             ImU32 color_hovered = GetColorU32(ImGuiCol_FrameBgHovered);
 	    ImU32 button_hovered = GetColorU32(ImGuiCol_ButtonHovered);
 	    ImU32 text_color = GetColorU32(ImGuiCol_Text);
@@ -793,10 +797,13 @@ struct DockContext
             {
                 SameLine(0, 15);
 
-                const char* text_end = FindRenderedTextEnd(dock_tab->label);
-                ImVec2 size(CalcTextSize(dock_tab->label, text_end).x, line_height);
-		if (InvisibleButton(dock_tab->label, size))
+                const char *label = dock_tab->label;
+
+                const char* text_end = FindRenderedTextEnd(label);
+                ImVec2 size(CalcTextSize(label, text_end).x, line_height);
+		if (InvisibleButton(label, size))
                 {
+                    *tab_clicked = true;
                     dock_tab->setActive();
                     m_next_parent = dock_tab;
                 }
@@ -810,7 +817,24 @@ struct DockContext
 
 		if (dock_tab->active && close_button) size.x += 16 + GetStyle().ItemSpacing.x;
 
-                bool hovered = IsItemHovered();
+                ImU32 tab_color;
+                if (IsItemHovered())
+                {
+                    if (dock_tab->focus)
+                        tab_color = color_active;
+                    else
+                        tab_color = color_hovered;
+                }
+                else if (dock_tab->active)
+                {
+                    if (dock_tab->focus)
+                        tab_color = color_focus;
+                    else
+                        tab_color = color_active;
+                }
+                else
+                    tab_color = color;
+
                 ImVec2 pos = GetItemRectMin();
                 tab_base = pos.y;
 		draw_list->PathClear();
@@ -822,13 +846,13 @@ struct DockContext
                                              pos + ImVec2(size.x + 10, size.y),
                                              pos + ImVec2(size.x + 15, size.y),
                                              10);
-		draw_list->PathFillConvex(hovered ? color_hovered : (dock_tab->active ? color_active : color));
-		draw_list->AddText(pos + ImVec2(0, 1), text_color, dock_tab->label, text_end);
+		draw_list->PathFillConvex(tab_color);
+		draw_list->AddText(pos + ImVec2(0, 1), text_color, label, text_end);
 
 		if (dock_tab->active && close_button)	{
 		    size.x += 16 + GetStyle().ItemSpacing.x;
 		    SameLine();
-		    tab_closed = InvisibleButton("close", ImVec2(16, 16));
+		    *tab_closed = InvisibleButton("close", ImVec2(16, 16));
 		    ImVec2 center = (GetItemRectMin() + GetItemRectMax()) * 0.5f;
 		    if (IsItemHovered())    {
 			draw_list->AddRectFilled(center + ImVec2(-6.0f, -6.0f), center + ImVec2(7.0f, 7.0f), button_hovered);
@@ -845,7 +869,6 @@ struct DockContext
             draw_list->AddLine(cp, cp + ImVec2(dock.size.x, 0), color);
         }
         EndChild();
-        return tab_closed;
     }
 
 
@@ -1191,9 +1214,13 @@ struct DockContext
     ImVec2 pos = dock.pos;
     ImVec2 size = dock.size;
 
+        bool tab_clicked = false;
+
     if (draw_tabbar)
     {
-    	if (tabbar(firstTab, opened != NULL))
+        bool tab_closed;
+        tabbar(firstTab, opened != NULL, &tab_closed, &tab_clicked);
+        if (tab_closed)
         {
             fillLocation(dock);
             *opened = false;
@@ -1212,6 +1239,14 @@ struct DockContext
 	strcat(tmp, "_docked"); // to avoid https://github.com/ocornut/imgui/issues/713
 	bool ret = BeginChild(tmp, size, true, flags);
 	PopStyleColor(2);
+
+        if (tab_clicked)
+        {
+            // Put focus on the actual dock contents.
+            FocusWindow(GImGui->CurrentWindow);
+        }
+
+        dock.focus = IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
 
     if (dock.status == Status_Dragged)
     {
